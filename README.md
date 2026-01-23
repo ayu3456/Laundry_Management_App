@@ -1,8 +1,6 @@
 # 🧺 University Laundry Management System
 
-![Status](https://img.shields.io/badge/Status-Completed-success)
-![License](https://img.shields.io/badge/License-MIT-blue)
-![MERN Stack](https://img.shields.io/badge/Stack-MERN-green)
+
 
 A responsive, full-stack web application designed to streamline student laundry services in university hostels. Includes role-based access control for Students and Admins, real-time status tracking, and secure data management.
 
