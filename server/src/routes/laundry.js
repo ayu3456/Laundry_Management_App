@@ -9,6 +9,16 @@ const { protect, authorize } = require('../middleware/auth');
 router.post('/dropoff', protect, authorize('student'), async (req, res) => {
   try {
     const { clothesCount } = req.body;
+
+    // Check for existing pending request
+    const existingRecord = await LaundryRecord.findOne({
+      studentId: req.user.id,
+      status: 'PENDING'
+    });
+
+    if (existingRecord) {
+      return res.status(400).json({ error: 'You already have a pending laundry request. Please collect it first.' });
+    }
     
     // Auto-calculate return date (3 days from now)
     const returnDate = new Date();
