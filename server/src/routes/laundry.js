@@ -101,10 +101,9 @@ router.get('/admin/all', protect, authorize('admin'), async (req, res) => {
       .sort({ depositDate: -1 });
 
     // Filter by rollNumber in memory if simple query
-    // Optimally, use aggregate pipeline
     let finalRecords = records;
     if (rollNumber) {
-        finalRecords = records.filter(r => r.studentId.rollNumber.includes(rollNumber));
+        finalRecords = records.filter(r => r.studentId && r.studentId.rollNumber && r.studentId.rollNumber.toUpperCase().includes(rollNumber.toUpperCase()));
     }
 
     res.json(finalRecords);
