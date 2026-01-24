@@ -31,7 +31,7 @@ app.use('/api/laundry', laundryRoutes);
 app.use('/api/auth', require('./routes/auth'));
 
 // 5. Catch-all for undefined API routes (MUST return JSON, not HTML)
-app.all('/api/*', (req, res) => {
+app.all('/api/(.*)', (req, res) => {
     console.log(`❌ 404 - API Endpoint Not Found: ${req.method} ${req.url}`);
     res.status(404).json({ 
         error: 'API Endpoint Not Found',
