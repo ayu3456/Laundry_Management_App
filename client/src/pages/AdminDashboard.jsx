@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import ThemeToggle from '../components/ThemeToggle';
 import { 
   Search, 
   Filter, 
@@ -114,41 +115,43 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50/50 p-6 md:p-8">
+    <div className="min-h-screen bg-gray-50/50 dark:bg-gray-900 p-6 md:p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Dashboard</h1>
-              <p className="text-gray-500 mt-1">Overview of laundry operations and student requests</p>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Dashboard</h1>
+              <p className="text-gray-500 dark:text-gray-400 mt-1">Overview of laundry operations and student requests</p>
             </div>
             <button 
                 onClick={handleRefresh}
-                className={`p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-blue-600 transition-all ${isRefreshing ? 'animate-spin text-blue-600' : ''}`}
+                className={`p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all ${isRefreshing ? 'animate-spin text-blue-600' : ''}`}
                 title="Refresh Data"
             >
                 <RefreshCw size={20} />
             </button>
           </div>
-          <button 
-            onClick={logout} 
-            className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-red-600 bg-red-50 hover:bg-red-100 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-          >
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <button 
+              onClick={logout} 
+              className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+            >
             <LogOut size={16} className="mr-2" />
             Sign Out
           </button>
         </div>
 
         {/* Filters */}
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 items-center">
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col md:flex-row gap-4 items-center">
             <div className="relative flex-1 w-full">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                 <input 
                     type="text" 
                     placeholder="Search by Roll Number..." 
-                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm dark:text-white dark:placeholder-gray-400"
                     value={searchRoll}
                     onChange={e => setSearchRoll(e.target.value)}
                 />
@@ -156,7 +159,7 @@ export default function AdminDashboard() {
             <div className="relative w-full md:w-64">
                 <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                 <select 
-                    className="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none text-sm cursor-pointer"
+                    className="w-full pl-10 pr-10 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none text-sm cursor-pointer dark:text-white"
                     value={statusFilter}
                     onChange={e => setStatusFilter(e.target.value)}
                 >
@@ -171,7 +174,7 @@ export default function AdminDashboard() {
             {(statusFilter || searchRoll) && (
                 <button 
                     onClick={handleClearFilters}
-                    className="inline-flex items-center text-sm text-gray-400 hover:text-red-500 transition-colors"
+                    className="inline-flex items-center text-sm text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
                 >
                     <Trash2 size={14} className="mr-1.5" />
                     Clear Filters
@@ -180,37 +183,37 @@ export default function AdminDashboard() {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
             <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                     <thead>
-                        <tr className="bg-gray-50/50 border-b border-gray-100">
-                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Student</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Clothes</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Submit Date</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Action</th>
+                        <tr className="bg-gray-50/50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-600">
+                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Student</th>
+                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Clothes</th>
+                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Submit Date</th>
+                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">Action</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100 text-sm">
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700 text-sm">
                         {records.map(record => {
                             const isOverdue = checkIsOverdue(record);
                             return (
                                 <tr 
                                     key={record._id} 
                                     onClick={() => setSelectedRecord(record)}
-                                    className="group hover:bg-blue-50/30 transition-colors cursor-pointer"
+                                    className="group hover:bg-blue-50/30 dark:hover:bg-blue-900/10 transition-colors cursor-pointer"
                                 >
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs uppercase">
+                                            <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-xs uppercase">
                                                 {record.studentId?.name?.charAt(0) || 'U'}
                                             </div>
                                             <div>
-                                                <div className="font-medium text-gray-900 group-hover:text-blue-700 transition-colors">
+                                                <div className="font-medium text-gray-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">
                                                     {record.studentId?.name || 'Unknown'}
                                                 </div>
-                                                <div className="text-gray-500 text-xs">
+                                                <div className="text-gray-500 dark:text-gray-400 text-xs">
                                                     {record.studentId?.rollNumber}
                                                 </div>
                                             </div>
@@ -456,6 +459,7 @@ export default function AdminDashboard() {
             </div>
         </div>
       )}
+    </div>
     </div>
   );
 }
