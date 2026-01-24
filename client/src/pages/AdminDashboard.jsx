@@ -17,9 +17,7 @@ import {
   ChevronRight,
   ChevronLeft,
   RefreshCw,
-  Trash2,
-  AlertTriangle,
-  ArrowDown
+  Trash2
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -27,7 +25,6 @@ export default function AdminDashboard() {
   const [records, setRecords] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [currentPage, setCurrentPage] = useState(1);
-  const [stats, setStats] = useState(null);
   const [statusFilter, setStatusFilter] = useState('');
   const [searchRoll, setSearchRoll] = useState('');
   
@@ -39,30 +36,10 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (user && user.token) {
         fetchRecords(currentPage);
-        fetchStats();
     }
   }, [statusFilter, searchRoll, currentPage, user]);
 
-  const fetchStats = async () => {
-    try {
-      const res = await axios.get(`http://localhost:3000/api/laundry/admin/stats?t=${Date.now()}`, {
-          headers: { Authorization: `Bearer ${user.token}` },
-          timeout: 5000 // Add timeout
-      });
-      console.log('✅ Stats API Success:', res.data);
-      setStats(res.data);
-    } catch (err) {
-      console.error('❌ Stats API Error:', err.response?.data || err.message);
-      // Fallback to 0s so UI isn't stuck on "..."
-      setStats({
-          totalPending: 0,
-          overdueCount: 0,
-          collectedToday: 0,
-          dropoffsToday: 0
-      });
-      toast.error('Failed to load dashboard statistics');
-    }
-  };
+
 
   const fetchRecords = async (page = 1) => {
     setIsLoading(true);
@@ -96,7 +73,6 @@ export default function AdminDashboard() {
   const handleRefresh = () => {
     setIsRefreshing(true);
     fetchRecords(currentPage);
-    fetchStats();
   };
 
   const handleClearFilters = () => {
@@ -137,19 +113,6 @@ export default function AdminDashboard() {
     }
   };
 
-  const StatCard = ({ title, value, icon: StatIcon, color, subtext }) => (
-      <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-start justify-between">
-          <div>
-              <p className="text-gray-500 text-sm font-medium">{title}</p>
-              <h3 className="text-2xl font-bold text-gray-900 mt-1">{value}</h3>
-              {subtext && <p className={`text-xs mt-1 ${color}`}>{subtext}</p>}
-          </div>
-          <div className={`p-2.5 rounded-lg ${color.replace('text-', 'bg-').replace('600', '50')}`}>
-              {StatIcon && <StatIcon className={color} size={20} />}
-          </div>
-      </div>
-  );
-
   return (
     <div className="min-h-screen bg-gray-50/50 p-6 md:p-8">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -176,38 +139,6 @@ export default function AdminDashboard() {
             <LogOut size={16} className="mr-2" />
             Sign Out
           </button>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard 
-                title="Total Pending" 
-                value={stats ? stats.totalPending : '...'} 
-                icon={Clock} 
-                color="text-yellow-600"
-                subtext="Active washing loads"
-            />
-            <StatCard 
-                title="Overdue Items" 
-                value={stats ? stats.overdueCount : '...'} 
-                icon={AlertTriangle} 
-                color="text-red-600"
-                subtext="Requires attention"
-            />
-            <StatCard 
-                title="Collected Today" 
-                value={stats ? stats.collectedToday : '...'} 
-                icon={CheckCircle} 
-                color="text-green-600"
-                subtext="Successful returns"
-            />
-            <StatCard 
-                title="New Drop-offs" 
-                value={stats ? stats.dropoffsToday : '...'} 
-                icon={ArrowDown} 
-                color="text-blue-600"
-                subtext="Received today"
-            />
         </div>
 
         {/* Filters */}
