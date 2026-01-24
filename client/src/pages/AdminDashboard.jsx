@@ -16,6 +16,8 @@ import {
   LogOut,
   ChevronRight,
   ChevronLeft,
+  RefreshCw,
+  Trash2,
   AlertTriangle,
   ArrowDown
 } from 'lucide-react';
@@ -34,10 +36,10 @@ export default function AdminDashboard() {
   const [statusFilter, setStatusFilter] = useState('');
   const [searchRoll, setSearchRoll] = useState('');
   
-  // Modal State
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [isSending, setIsSending] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -50,7 +52,7 @@ export default function AdminDashboard() {
 
   const fetchStats = async () => {
     try {
-      const res = await axios.get('http://localhost:3000/api/laundry/admin/stats', {
+      const res = await axios.get(`http://localhost:3000/api/laundry/admin/stats?t=${Date.now()}`, {
           headers: { Authorization: `Bearer ${user.token}` }
       });
       setStats(res.data);
@@ -62,7 +64,7 @@ export default function AdminDashboard() {
   const fetchRecords = async (page = 1) => {
     setIsLoading(true);
     try {
-      const params = { page, limit: 10 };
+      const params = { page, limit: 10, t: Date.now() };
       if (statusFilter) params.status = statusFilter;
       if (searchRoll) params.rollNumber = searchRoll;
 
@@ -84,7 +86,20 @@ export default function AdminDashboard() {
       toast.error('Failed to fetch records');
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
+  };
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    fetchRecords(currentPage);
+    fetchStats();
+  };
+
+  const handleClearFilters = () => {
+      setStatusFilter('');
+      setSearchRoll('');
+      setCurrentPage(1);
   };
 
   const handlePageChange = (newPage) => {
@@ -138,9 +153,18 @@ export default function AdminDashboard() {
         
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Dashboard</h1>
-            <p className="text-gray-500 mt-1">Overview of laundry operations and student requests</p>
+          <div className="flex items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Dashboard</h1>
+              <p className="text-gray-500 mt-1">Overview of laundry operations and student requests</p>
+            </div>
+            <button 
+                onClick={handleRefresh}
+                className={`p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-blue-600 transition-all ${isRefreshing ? 'animate-spin text-blue-600' : ''}`}
+                title="Refresh Data"
+            >
+                <RefreshCw size={20} />
+            </button>
           </div>
           <button 
             onClick={logout} 
@@ -210,6 +234,15 @@ export default function AdminDashboard() {
                     <ChevronRight className="rotate-90 text-gray-400" size={16} />
                 </div>
             </div>
+            {(statusFilter || searchRoll) && (
+                <button 
+                    onClick={handleClearFilters}
+                    className="inline-flex items-center text-sm text-gray-400 hover:text-red-500 transition-colors"
+                >
+                    <Trash2 size={14} className="mr-1.5" />
+                    Clear Filters
+                </button>
+            )}
         </div>
 
         {/* Table */}
