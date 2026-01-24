@@ -46,12 +46,21 @@ export default function AdminDashboard() {
   const fetchStats = async () => {
     try {
       const res = await axios.get(`http://localhost:3000/api/laundry/admin/stats?t=${Date.now()}`, {
-          headers: { Authorization: `Bearer ${user.token}` }
+          headers: { Authorization: `Bearer ${user.token}` },
+          timeout: 5000 // Add timeout
       });
-      console.log('Fetched Stats:', res.data); // Helpful for user console
+      console.log('✅ Stats API Success:', res.data);
       setStats(res.data);
     } catch (err) {
-      console.error('Stats fetch error:', err);
+      console.error('❌ Stats API Error:', err.response?.data || err.message);
+      // Fallback to 0s so UI isn't stuck on "..."
+      setStats({
+          totalPending: 0,
+          overdueCount: 0,
+          collectedToday: 0,
+          dropoffsToday: 0
+      });
+      toast.error('Failed to load dashboard statistics');
     }
   };
 
