@@ -17,25 +17,17 @@ app.use((req, res, next) => {
   next();
 });
 
-// 2. Health Ping
 app.get('/api/ping', (req, res) => res.json({ status: 'server-is-alive', time: new Date() }));
 
 // 3. Mount Routes
 console.log('--- Registering API Routes ---');
-app.use('/api/laundry', (req, res, next) => {
-    console.log('Matched /api/laundry path');
-    next();
-}, require('./routes/laundry'));
-
+app.use('/api/laundry', require('./routes/laundry'));
 app.use('/api/auth', require('./routes/auth'));
 
-// 5. Catch-all for undefined API routes (MUST return JSON)
+// 5. Catch-all for API (If it starts with /api but reached here, it's a 404)
 app.use('/api', (req, res) => {
-    console.log(`❌ API Endpoint Not Found: ${req.method} ${req.url}`);
-    res.status(404).json({ 
-        error: 'Backend API route not found',
-        receivedPath: req.url 
-    });
+    console.log(`❌ API Route Missing: ${req.method} ${req.url}`);
+    res.status(404).json({ error: 'Endpoint not found', path: req.url });
 });
 
 // 6. Production Static Assets
@@ -45,20 +37,21 @@ if (process.env.NODE_ENV === 'production') {
   console.log(`Serving static assets from: ${distPath}`);
   app.use(express.static(distPath));
 
-  // Express 5 syntax for catch-all: (.*)
-  app.get('(.*)', (req, res, next) => {
-    // If it is an API call that leaked through, skip to 404 handler
-    if (req.url.startsWith('/api')) return next();
+  // Express 5 - Pathless middleware handles all fallthroughs
+  app.use((req, res) => {
+    // If it is an API call that leaked through, send JSON
+    if (req.url.startsWith('/api')) {
+        return res.status(404).json({ error: 'API route not found', path: req.url });
+    }
     res.sendFile(path.resolve(distPath, 'index.html'));
   });
 }
 
 // 7. Global Error Handler
 app.use((err, req, res, next) => {
-    console.error('🔥 UNHANDLED ERROR:', err);
-    // Explicitly return JSON for ALL errors
+    console.error('🔥 SERVER ERROR:', err);
     res.status(err.status || 500).json({ 
-        error: 'Server Error', 
+        error: 'Backend Error', 
         message: err.message,
         path: req.url 
     });
