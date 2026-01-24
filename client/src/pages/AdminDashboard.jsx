@@ -115,52 +115,52 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#0f172a] transition-colors duration-300">
-      <div className="max-w-[1600px] mx-auto p-6 lg:p-12">
-        <div className="flex flex-col lg:flex-row gap-12 items-start">
-          
-          {/* Left Side: Header & Controls */}
-          <div className="lg:w-1/3 space-y-8 lg:sticky lg:top-12">
+    <div className="min-h-screen bg-gray-50/50 dark:bg-gray-900 p-6 md:p-8 transition-colors duration-300">
+      <div className="max-w-7xl mx-auto space-y-8">
+        
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
             <div>
-              <h1 className="text-5xl font-bold text-gray-900 dark:text-white tracking-tight">Dashboard</h1>
-              <p className="text-gray-500 dark:text-gray-400 mt-4 text-lg leading-relaxed">
-                Overview of laundry operations and student requests. Manage submissions and notifications.
-              </p>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Dashboard</h1>
+              <p className="text-gray-500 dark:text-gray-400 mt-1">Overview of laundry operations and student requests</p>
             </div>
+            <button 
+                onClick={handleRefresh}
+                className={`p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all ${isRefreshing ? 'animate-spin text-blue-600' : ''}`}
+                title="Refresh Data"
+            >
+                <RefreshCw size={20} />
+            </button>
+          </div>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <button 
+              onClick={logout} 
+              className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+            >
+              <LogOut size={16} className="mr-2" />
+              Sign Out
+            </button>
+          </div>
+        </div>
 
-            <div className="flex items-center gap-4">
-              <button 
-                  onClick={handleRefresh}
-                  className={`p-3 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all ${isRefreshing ? 'animate-spin text-blue-600' : ''}`}
-                  title="Refresh Data"
-              >
-                  <RefreshCw size={24} />
-              </button>
-              <ThemeToggle />
-              <button 
-                onClick={logout} 
-                className="flex-1 inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-semibold rounded-xl text-white bg-red-600 hover:bg-red-700 transition-all shadow-lg shadow-red-200 dark:shadow-none"
-              >
-                <LogOut size={20} className="mr-2" />
-                Sign Out
-              </button>
-            </div>
-
-            <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 space-y-4">
-              <div className="relative">
+        {/* Filters */}
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col md:flex-row gap-4 items-center">
+            <div className="relative flex-1 w-full">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                 <input 
                     type="text" 
-                    placeholder="Search Roll Number..." 
-                    className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm dark:text-white"
+                    placeholder="Search by Roll Number..." 
+                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm dark:text-white"
                     value={searchRoll}
                     onChange={e => setSearchRoll(e.target.value)}
                 />
-              </div>
-              <div className="relative">
+            </div>
+            <div className="relative w-full md:w-64">
                 <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                 <select 
-                    className="w-full pl-10 pr-10 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none text-sm dark:text-white cursor-pointer"
+                    className="w-full pl-10 pr-10 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none text-sm dark:text-white cursor-pointer"
                     value={statusFilter}
                     onChange={e => setStatusFilter(e.target.value)}
                 >
@@ -171,170 +171,144 @@ export default function AdminDashboard() {
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
                     <ChevronRight className="rotate-90 text-gray-400" size={16} />
                 </div>
-              </div>
-              {(statusFilter || searchRoll) && (
+            </div>
+            {(statusFilter || searchRoll) && (
                 <button 
                     onClick={handleClearFilters}
-                    className="w-full py-2 text-sm text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors flex items-center justify-center gap-2"
+                    className="inline-flex items-center text-sm text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
                 >
-                    <Trash2 size={14} />
+                    <Trash2 size={14} className="mr-1.5" />
                     Clear Filters
                 </button>
-              )}
-            </div>
-          </div>
+            )}
+        </div>
 
-          {/* Right Side: Table */}
-          <div className="lg:w-2/3 w-full">
-            <div className="bg-white dark:bg-gray-800/40 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700/50 overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="bg-gray-50/50 dark:bg-gray-900/30 border-b border-gray-100 dark:border-gray-700">
-                                <th className="px-6 py-5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Student</th>
-                                <th className="px-6 py-5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Clothes</th>
-                                <th className="px-6 py-5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Submit Date</th>
-                                <th className="px-6 py-5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest text-right">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-gray-700/50">
-                            {records.map(record => {
-                                const isOverdue = checkIsOverdue(record);
-                                return (
-                                    <tr 
-                                        key={record._id} 
-                                        onClick={() => setSelectedRecord(record)}
-                                        className="group hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-all cursor-pointer"
-                                    >
-                                        <td className="px-6 py-5">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-sm">
-                                                    {record.studentId?.name?.charAt(0) || 'U'}
-                                                </div>
-                                                <div>
-                                                    <div className="font-semibold text-gray-900 dark:text-gray-100">{record.studentId?.name || 'Unknown'}</div>
-                                                    <div className="text-gray-400 text-xs mt-0.5">{record.studentId?.rollNumber}</div>
-                                                </div>
+        {/* Table */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+            <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                    <thead>
+                        <tr className="bg-gray-50/50 dark:bg-gray-900/30 border-b border-gray-100 dark:border-gray-700">
+                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Student</th>
+                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Clothes</th>
+                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Submit Date</th>
+                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                        {records.map(record => {
+                            const isOverdue = checkIsOverdue(record);
+                            return (
+                                <tr 
+                                    key={record._id} 
+                                    onClick={() => setSelectedRecord(record)}
+                                    className="group hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors cursor-pointer"
+                                >
+                                    <td className="px-6 py-4 text-sm">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-xs">
+                                                {record.studentId?.name?.charAt(0) || 'U'}
                                             </div>
-                                        </td>
-                                        <td className="px-6 py-5">
-                                            <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 font-medium">
-                                                <Package size={16} className="text-gray-300 dark:text-gray-600" />
-                                                {record.clothesCount} items
+                                            <div>
+                                                <div className="font-medium text-gray-900 dark:text-gray-100">{record.studentId?.name || 'Unknown'}</div>
+                                                <div className="text-gray-500 text-xs">{record.studentId?.rollNumber}</div>
                                             </div>
-                                        </td>
-                                        <td className="px-6 py-5">
-                                            <div className="flex items-center gap-2 text-gray-500 dark:text-gray-500">
-                                                <Calendar size={16} />
-                                                {new Date(record.depositDate).toLocaleDateString()}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-5 text-right">
-                                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                                                record.status === 'RECEIVED' 
-                                                    ? 'bg-green-100 dark:bg-green-900/10 text-green-700 dark:text-green-400' 
-                                                    : isOverdue 
-                                                        ? 'bg-red-100 dark:bg-red-900/10 text-red-700 dark:text-red-400'
-                                                        : 'bg-blue-100 dark:bg-blue-900/10 text-blue-700 dark:text-blue-400'
-                                            }`}>
-                                                {record.status === 'RECEIVED' ? 'Collected' : isOverdue ? 'Overdue' : 'Processing'}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
-                    
-                    {isLoading && <div className="p-20 text-center text-gray-400 animate-pulse">Fetching records...</div>}
-                    {!isLoading && records.length === 0 && (
-                        <div className="p-20 text-center">
-                            <Package size={48} className="mx-auto text-gray-200 dark:text-gray-700 mb-4" />
-                            <h3 className="text-lg font-semibold text-gray-400">No results found</h3>
-                        </div>
-                    )}
-                </div>
-
-                {/* Pagination */}
-                {pagination.pages > 1 && (
-                    <div className="px-6 py-4 bg-gray-50/50 dark:bg-gray-900/20 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
-                        <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-                            Page {pagination.page} of {pagination.pages}
-                        </span>
-                        <div className="flex gap-2">
-                            <button 
-                                onClick={() => handlePageChange(currentPage - 1)}
-                                disabled={currentPage === 1}
-                                className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 disabled:opacity-50 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
-                            >
-                                <ChevronLeft size={18} />
-                            </button>
-                            <button 
-                                onClick={() => handlePageChange(currentPage + 1)}
-                                disabled={currentPage === pagination.pages}
-                                className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 disabled:opacity-50 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
-                            >
-                                <ChevronRight size={18} />
-                            </button>
-                        </div>
-                    </div>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
+                                        <div className="flex items-center gap-2">
+                                            <Package size={16} className="text-gray-400 dark:text-gray-600" />
+                                            {record.clothesCount} items
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
+                                        <div className="flex items-center gap-2">
+                                            <Calendar size={16} className="text-gray-400 dark:text-gray-600" />
+                                            {new Date(record.depositDate).toLocaleDateString()}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-sm">
+                                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
+                                            record.status === 'RECEIVED' 
+                                                ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-100 dark:border-green-800' 
+                                                : isOverdue 
+                                                    ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-100 dark:border-red-800'
+                                                    : 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 border-yellow-100 dark:border-yellow-800'
+                                        }`}>
+                                            {record.status === 'RECEIVED' ? 'Collected' : isOverdue ? 'Overdue' : 'Processing'}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                        <ChevronRight size={16} className="text-gray-300 dark:text-gray-600 group-hover:text-blue-500 inline-block" />
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
+                {isLoading && <div className="p-12 text-center text-gray-400">Loading records...</div>}
+                {!isLoading && records.length === 0 && (
+                    <div className="p-12 text-center text-gray-500">No records found</div>
                 )}
             </div>
-          </div>
+
+            {/* Pagination */}
+            {pagination.pages > 1 && (
+                <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between bg-gray-50/50 dark:bg-gray-900/20">
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                        Page <span className="font-medium text-gray-900 dark:text-white">{pagination.page}</span> of <span className="font-medium text-gray-900 dark:text-white">{pagination.pages}</span>
+                    </div>
+                    <div className="flex gap-2">
+                        <button 
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 disabled:opacity-50 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
+                        >
+                            <ChevronLeft size={18} />
+                        </button>
+                        <button 
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === pagination.pages}
+                            className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 disabled:opacity-50 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
+                        >
+                            <ChevronRight size={18} />
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
       </div>
 
       {/* Detail Modal */}
       {selectedRecord && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-md" onClick={() => setSelectedRecord(null)} />
-            <div className="bg-white dark:bg-[#1e293b] rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden relative z-10 p-8 border border-white/10">
-                <div className="flex justify-between items-start mb-8">
-                    <div>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{selectedRecord.studentId?.name}</h3>
-                        <p className="text-gray-400 font-mono text-sm mt-1">{selectedRecord.studentId?.rollNumber}</p>
-                    </div>
-                    <button onClick={() => setSelectedRecord(null)} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 transition-all">
-                        <X size={24} />
-                    </button>
+            <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => setSelectedRecord(null)} />
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden relative z-10">
+                <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">Details</h3>
+                    <button onClick={() => setSelectedRecord(null)} className="p-1 text-gray-400 hover:text-gray-600"><X size={20} /></button>
                 </div>
-
-                <div className="space-y-6">
-                    <div className={`p-5 rounded-2xl border ${
-                        selectedRecord.status === 'RECEIVED' ? 'bg-green-50 dark:bg-green-900/10 border-green-100 dark:border-green-900/30' :
-                        checkIsOverdue(selectedRecord) ? 'bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900/30' :
-                        'bg-blue-50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-900/30'
-                    }`}>
-                        <div className="flex items-center gap-4">
-                            <div className="font-bold text-lg dark:text-white">
-                                {selectedRecord.status === 'RECEIVED' ? 'Laundry Collected' : 
-                                 checkIsOverdue(selectedRecord) ? 'Item Overdue' : 'Work in Progress'}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-6">
-                        <div>
-                            <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">Location</label>
-                            <p className="dark:text-white font-medium">{selectedRecord.studentId?.hostel}, {selectedRecord.studentId?.room}</p>
+                <div className="p-6 space-y-4">
+                    <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
+                        <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">
+                            {selectedRecord.studentId?.name?.charAt(0)}
                         </div>
                         <div>
-                            <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">Clothes</label>
-                            <p className="dark:text-white font-medium">{selectedRecord.clothesCount} Items</p>
+                            <h4 className="font-bold text-gray-900 dark:text-white">{selectedRecord.studentId?.name}</h4>
+                            <p className="text-sm text-gray-500">{selectedRecord.studentId?.rollNumber}</p>
                         </div>
                     </div>
-
                     <button 
                         onClick={handleSendEmail}
                         disabled={!checkIsOverdue(selectedRecord) || selectedRecord.status === 'RECEIVED' || isSending}
-                        className={`w-full py-4 rounded-2xl flex items-center justify-center gap-3 font-bold transition-all ${
+                        className={`w-full py-3 rounded-xl font-bold transition-all ${
                             checkIsOverdue(selectedRecord) && selectedRecord.status !== 'RECEIVED'
-                            ? 'bg-red-600 text-white hover:bg-red-700 shadow-xl shadow-red-600/20'
-                            : 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
+                            ? 'bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-200'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
                         }`}
                     >
-                        <Mail size={20} />
-                        {isSending ? 'Sending Notification...' : 'Send Overdue Reminder'}
+                        {isSending ? 'Sending...' : 'Send Overdue Reminder'}
                     </button>
                 </div>
             </div>
