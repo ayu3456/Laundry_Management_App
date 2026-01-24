@@ -42,19 +42,18 @@ export default function AdminDashboard() {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
-    setCurrentPage(1);
-  }, [statusFilter, searchRoll]);
-
-  useEffect(() => {
-    fetchRecords(currentPage);
-    fetchStats();
-  }, [statusFilter, searchRoll, currentPage]);
+    if (user && user.token) {
+        fetchRecords(currentPage);
+        fetchStats();
+    }
+  }, [statusFilter, searchRoll, currentPage, user]);
 
   const fetchStats = async () => {
     try {
       const res = await axios.get(`http://localhost:3000/api/laundry/admin/stats?t=${Date.now()}`, {
           headers: { Authorization: `Bearer ${user.token}` }
       });
+      console.log('Fetched Stats:', res.data); // Helpful for user console
       setStats(res.data);
     } catch (err) {
       console.error('Stats fetch error:', err);
