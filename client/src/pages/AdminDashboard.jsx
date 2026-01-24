@@ -16,7 +16,6 @@ import {
   LogOut,
   ChevronRight,
   ChevronLeft,
-  TrendingUp,
   AlertTriangle,
   ArrowDown
 } from 'lucide-react';
@@ -38,6 +37,11 @@ export default function AdminDashboard() {
   // Modal State
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [isSending, setIsSending] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, searchRoll]);
 
   useEffect(() => {
     fetchRecords(currentPage);
@@ -51,11 +55,12 @@ export default function AdminDashboard() {
       });
       setStats(res.data);
     } catch (err) {
-      console.error(err);
+      console.error('Stats fetch error:', err);
     }
   };
 
   const fetchRecords = async (page = 1) => {
+    setIsLoading(true);
     try {
       const params = { page, limit: 10 };
       if (statusFilter) params.status = statusFilter;
@@ -65,10 +70,20 @@ export default function AdminDashboard() {
         headers: { Authorization: `Bearer ${user.token}` },
         params
       });
-      setRecords(res.data.records);
-      setPagination(res.data.pagination);
+      // Safety check for paginated response
+      if (res.data && res.data.records) {
+        setRecords(res.data.records);
+        setPagination(res.data.pagination);
+      } else if (Array.isArray(res.data)) {
+        // Fallback if server wasn't restarted and returns old format
+        setRecords(res.data);
+        setPagination({ page: 1, pages: 1, total: res.data.length });
+      }
     } catch (err) {
       console.error(err);
+      toast.error('Failed to fetch records');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -104,7 +119,7 @@ export default function AdminDashboard() {
     }
   };
 
-  const StatCard = ({ title, value, icon: Icon, color, subtext }) => (
+  const StatCard = ({ title, value, icon: StatIcon, color, subtext }) => (
       <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-start justify-between">
           <div>
               <p className="text-gray-500 text-sm font-medium">{title}</p>
@@ -112,7 +127,7 @@ export default function AdminDashboard() {
               {subtext && <p className={`text-xs mt-1 ${color}`}>{subtext}</p>}
           </div>
           <div className={`p-2.5 rounded-lg ${color.replace('text-', 'bg-').replace('600', '50')}`}>
-              <Icon className={color} size={20} />
+              {StatIcon && <StatIcon className={color} size={20} />}
           </div>
       </div>
   );
@@ -269,7 +284,9 @@ export default function AdminDashboard() {
                         })}
                     </tbody>
                 </table>
-                {records.length === 0 && (
+                {isLoading ? (
+                    <div className="p-12 text-center text-gray-400">Loading records...</div>
+                ) : records.length === 0 && (
                     <div className="p-12 text-center">
                         <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-4">
                             <Package size={24} className="text-gray-400" />
