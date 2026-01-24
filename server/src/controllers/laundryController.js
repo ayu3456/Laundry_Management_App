@@ -179,14 +179,13 @@ exports.notifyStudent = async (req, res) => {
 // @access  Private (Admin)
 exports.getStats = async (req, res) => {
     try {
+        console.log('--- Generating Dashboard Stats ---');
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
+        // Fetch counts with explicit status strings
         const totalPending = await LaundryRecord.countDocuments({ status: 'PENDING' });
         
-        // Count overdue: status PENDING and returnDate < now
-        // Note: Using aggregate or finding all pending then filtering might be better for complex logic
-        // But for mongoose query:
         const overdueCount = await LaundryRecord.countDocuments({
             status: 'PENDING',
             returnDate: { $lt: new Date() }
@@ -201,13 +200,21 @@ exports.getStats = async (req, res) => {
             depositDate: { $gte: today }
         });
 
-        res.json({
+        // Debug: Total records in DB
+        const debugTotal = await LaundryRecord.countDocuments({});
+
+        const statsData = {
             totalPending,
             overdueCount,
             collectedToday,
             dropoffsToday
-        });
+        };
+
+        console.log(`Stats DB Debug: Pending=${totalPending}, Total=${debugTotal}, DroppedToday=${dropoffsToday}`);
+        console.log('Stats calculated successfully:', statsData);
+        res.json(statsData);
     } catch (error) {
+        console.error('SERVER ERROR (getStats):', error);
         res.status(500).json({ error: error.message });
     }
 };

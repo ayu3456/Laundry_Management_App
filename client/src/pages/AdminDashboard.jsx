@@ -27,12 +27,7 @@ export default function AdminDashboard() {
   const [records, setRecords] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [currentPage, setCurrentPage] = useState(1);
-  const [stats, setStats] = useState({
-      totalPending: 0,
-      overdueCount: 0,
-      collectedToday: 0,
-      dropoffsToday: 0
-  });
+  const [stats, setStats] = useState(null);
   const [statusFilter, setStatusFilter] = useState('');
   const [searchRoll, setSearchRoll] = useState('');
   
@@ -178,28 +173,28 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard 
                 title="Total Pending" 
-                value={stats.totalPending} 
+                value={stats ? stats.totalPending : '...'} 
                 icon={Clock} 
                 color="text-yellow-600"
                 subtext="Active washing loads"
             />
             <StatCard 
                 title="Overdue Items" 
-                value={stats.overdueCount} 
+                value={stats ? stats.overdueCount : '...'} 
                 icon={AlertTriangle} 
                 color="text-red-600"
                 subtext="Requires attention"
             />
             <StatCard 
                 title="Collected Today" 
-                value={stats.collectedToday} 
+                value={stats ? stats.collectedToday : '...'} 
                 icon={CheckCircle} 
                 color="text-green-600"
                 subtext="Successful returns"
             />
             <StatCard 
                 title="New Drop-offs" 
-                value={stats.dropoffsToday} 
+                value={stats ? stats.dropoffsToday : '...'} 
                 icon={ArrowDown} 
                 color="text-blue-600"
                 subtext="Received today"
