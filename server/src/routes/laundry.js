@@ -5,15 +5,36 @@ const { protect, authorize } = require('../middleware/auth');
 
 const nodemailer = require('nodemailer');
 
-// Setup Nodemailer Transporter (Mock or Env)
-const transporter = nodemailer.createTransport({
-    host: 'smtp.ethereal.email',
-    port: 587,
-    auth: {
-        user: 'ethereal.user@ethereal.email',
-        pass: 'ethereal.pass'
+// Setup Nodemailer (Lazy load or init)
+let transporter;
+
+async function createTransporter() {
+    if (transporter) return transporter;
+
+    try {
+        const testAccount = await nodemailer.createTestAccount();
+        
+        console.log('Ethereal Email Configured:');
+        console.log('User:', testAccount.user);
+        console.log('Pass:', testAccount.pass);
+        
+        transporter = nodemailer.createTransport({
+            host: 'smtp.ethereal.email',
+            port: 587,
+            secure: false, // true for 465, false for other ports
+            auth: {
+                user: testAccount.user,
+                pass: testAccount.pass
+            }
+        });
+        return transporter;
+    } catch (err) {
+        console.error('Failed to create Ethereal account', err);
     }
-}); 
+}
+
+// Initialize immediately
+createTransporter(); 
 
 // @route   POST /api/laundry/dropoff
 // @desc    Submit clothes (Student only)
@@ -146,13 +167,18 @@ router.post('/notify', protect, authorize('admin'), async (req, res) => {
         // Here we just simulate or attempt to send
         console.log(`Sending email to ${user.email}: ${message}`);
         
-        // Example sending code (commented out to avoid crashing if no creds)
-        // await transporter.sendMail({
-        //     from: '"Laundry Admin" <admin@university.edu>',
-        //     to: user.email,
-        //     subject: 'Overdue Laundry Notification',
-        //     text: message
-        // });
+        // Send Email using Ethereal
+        const mailTransporter = await createTransporter();
+        const info = await mailTransporter.sendMail({
+            from: '"Laundry Admin" <admin@university.edu>',
+            to: user.email,
+            subject: 'Overdue Laundry Notification',
+            text: message
+        });
+
+        console.log(`Email sent: ${info.messageId}`);
+        // Preview only available when sending through an Ethereal account
+        console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
 
         res.json({ message: 'Notification sent successfully' });
     } catch (error) {
