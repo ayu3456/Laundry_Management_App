@@ -12,6 +12,12 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/laundry-a
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('Could not connect to MongoDB:', err));
 
+// Request Logger Middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  next();
+});
+
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/laundry', require('./routes/laundry'));
