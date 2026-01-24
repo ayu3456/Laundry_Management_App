@@ -24,4 +24,15 @@ router.get('/admin/stats', protect, authorize('admin'), getStats);
 router.get('/admin/all', protect, authorize('admin'), getAllRecords);
 router.post('/notify', protect, authorize('admin'), notifyStudent);
 
+// Fallthrough logger for laundry router
+router.use((req, res) => {
+    console.log(`❌ Laundry Router Fallthrough 404: ${req.method} ${req.originalUrl} -> Local: ${req.url}`);
+    res.status(404).json({ 
+        error: 'Route not found in Laundry Router',
+        method: req.method,
+        path: req.originalUrl,
+        localPath: req.url
+    });
+});
+
 module.exports = router;

@@ -19,6 +19,7 @@ app.use((req, res, next) => {
 });
 
 // Routes
+app.get('/api/ping', (req, res) => res.json({ status: 'ok', serverTime: new Date() }));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/laundry', require('./routes/laundry'));
 
@@ -27,7 +28,8 @@ if (process.env.NODE_ENV === 'production') {
   const path = require('path');
   app.use(express.static(path.join(__dirname, '../../client/dist')));
 
-  app.get('*p', (req, res) => {
+  // ONLY catch routes that don't start with /api
+  app.get(/^(?!\/api).*/, (req, res) => {
     res.sendFile(path.resolve(__dirname, '../../client/dist', 'index.html'));
   });
 }
