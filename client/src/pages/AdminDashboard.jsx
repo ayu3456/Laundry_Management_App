@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 import { 
   Search, 
   Filter, 
@@ -13,12 +14,24 @@ import {
   User,
   Mail,
   LogOut,
-  ChevronRight
+  ChevronRight,
+  ChevronLeft,
+  TrendingUp,
+  AlertTriangle,
+  ArrowDown
 } from 'lucide-react';
 
 export default function AdminDashboard() {
   const { user, logout } = useAuth();
   const [records, setRecords] = useState([]);
+  const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [stats, setStats] = useState({
+      totalPending: 0,
+      overdueCount: 0,
+      collectedToday: 0,
+      dropoffsToday: 0
+  });
   const [statusFilter, setStatusFilter] = useState('');
   const [searchRoll, setSearchRoll] = useState('');
   
@@ -27,12 +40,24 @@ export default function AdminDashboard() {
   const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
-    fetchRecords();
-  }, [statusFilter, searchRoll]);
+    fetchRecords(currentPage);
+    fetchStats();
+  }, [statusFilter, searchRoll, currentPage]);
 
-  const fetchRecords = async () => {
+  const fetchStats = async () => {
     try {
-      const params = {};
+      const res = await axios.get('http://localhost:3000/api/laundry/admin/stats', {
+          headers: { Authorization: `Bearer ${user.token}` }
+      });
+      setStats(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchRecords = async (page = 1) => {
+    try {
+      const params = { page, limit: 10 };
       if (statusFilter) params.status = statusFilter;
       if (searchRoll) params.rollNumber = searchRoll;
 
@@ -40,9 +65,16 @@ export default function AdminDashboard() {
         headers: { Authorization: `Bearer ${user.token}` },
         params
       });
-      setRecords(res.data);
+      setRecords(res.data.records);
+      setPagination(res.data.pagination);
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= pagination.pages) {
+      setCurrentPage(newPage);
     }
   };
 
@@ -62,15 +94,28 @@ export default function AdminDashboard() {
             { studentId: selectedRecord.studentId?._id, message },
             { headers: { Authorization: `Bearer ${user.token}` } }
         );
-        alert('Notification sent successfully!');
+        toast.success('Notification sent successfully!');
         setSelectedRecord(null);
     } catch (err) {
         console.error(err);
-        alert('Failed to send notification');
+        toast.error('Failed to send notification');
     } finally {
         setIsSending(false);
     }
   };
+
+  const StatCard = ({ title, value, icon: Icon, color, subtext }) => (
+      <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-start justify-between">
+          <div>
+              <p className="text-gray-500 text-sm font-medium">{title}</p>
+              <h3 className="text-2xl font-bold text-gray-900 mt-1">{value}</h3>
+              {subtext && <p className={`text-xs mt-1 ${color}`}>{subtext}</p>}
+          </div>
+          <div className={`p-2.5 rounded-lg ${color.replace('text-', 'bg-').replace('600', '50')}`}>
+              <Icon className={color} size={20} />
+          </div>
+      </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50/50 p-6 md:p-8">
@@ -89,6 +134,38 @@ export default function AdminDashboard() {
             <LogOut size={16} className="mr-2" />
             Sign Out
           </button>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard 
+                title="Total Pending" 
+                value={stats.totalPending} 
+                icon={Clock} 
+                color="text-yellow-600"
+                subtext="Active washing loads"
+            />
+            <StatCard 
+                title="Overdue Items" 
+                value={stats.overdueCount} 
+                icon={AlertTriangle} 
+                color="text-red-600"
+                subtext="Requires attention"
+            />
+            <StatCard 
+                title="Collected Today" 
+                value={stats.collectedToday} 
+                icon={CheckCircle} 
+                color="text-green-600"
+                subtext="Successful returns"
+            />
+            <StatCard 
+                title="New Drop-offs" 
+                value={stats.dropoffsToday} 
+                icon={ArrowDown} 
+                color="text-blue-600"
+                subtext="Received today"
+            />
         </div>
 
         {/* Filters */}
@@ -202,6 +279,56 @@ export default function AdminDashboard() {
                     </div>
                 )}
             </div>
+
+            {/* Pagination Controls */}
+            {pagination.pages > 1 && (
+                <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between bg-gray-50/50">
+                    <div className="text-sm text-gray-500">
+                        Showing <span className="font-medium text-gray-900">{((pagination.page - 1) * 10) + 1}</span> to <span className="font-medium text-gray-900">{Math.min(pagination.page * 10, pagination.total)}</span> of <span className="font-medium text-gray-900">{pagination.total}</span> records
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button 
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className={`p-2 rounded-lg border border-gray-200 transition-all ${
+                                currentPage === 1 
+                                    ? 'bg-gray-50 text-gray-300 cursor-not-allowed' 
+                                    : 'bg-white text-gray-600 hover:bg-gray-50 hover:text-blue-600'
+                            }`}
+                        >
+                            <ChevronLeft size={18} />
+                        </button>
+                        
+                        <div className="flex items-center gap-1">
+                            {[...Array(pagination.pages)].map((_, i) => (
+                                <button
+                                    key={i + 1}
+                                    onClick={() => handlePageChange(i + 1)}
+                                    className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${
+                                        currentPage === i + 1
+                                            ? 'bg-blue-600 text-white shadow-sm'
+                                            : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                                    }`}
+                                >
+                                    {i + 1}
+                                </button>
+                            ))}
+                        </div>
+
+                        <button 
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === pagination.pages}
+                            className={`p-2 rounded-lg border border-gray-200 transition-all ${
+                                currentPage === pagination.pages 
+                                    ? 'bg-gray-50 text-gray-300 cursor-not-allowed' 
+                                    : 'bg-white text-gray-600 hover:bg-gray-50 hover:text-blue-600'
+                            }`}
+                        >
+                            <ChevronRight size={18} />
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
       </div>
 
