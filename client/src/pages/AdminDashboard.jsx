@@ -219,13 +219,13 @@ export default function AdminDashboard() {
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-gray-600">
+                                    <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
                                         <div className="flex items-center gap-2">
                                             <Package size={16} className="text-gray-400" />
                                             {record.clothesCount} items
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-gray-600">
+                                    <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
                                         <div className="flex items-center gap-2">
                                             <Calendar size={16} className="text-gray-400" />
                                             {new Date(record.depositDate).toLocaleDateString()}
@@ -234,10 +234,10 @@ export default function AdminDashboard() {
                                     <td className="px-6 py-4">
                                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
                                             record.status === 'RECEIVED' 
-                                                ? 'bg-green-50 text-green-700 border-green-100' 
+                                                ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-100 dark:border-green-800' 
                                                 : isOverdue 
-                                                    ? 'bg-red-50 text-red-700 border-red-100'
-                                                    : 'bg-yellow-50 text-yellow-700 border-yellow-100'
+                                                    ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-100 dark:border-red-800'
+                                                    : 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 border-yellow-100 dark:border-yellow-800'
                                         }`}>
                                             {record.status === 'RECEIVED' && <CheckCircle size={12} className="mr-1.5" />}
                                             {isOverdue && record.status !== 'RECEIVED' && <AlertCircle size={12} className="mr-1.5" />}
@@ -247,7 +247,7 @@ export default function AdminDashboard() {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <ChevronRight size={16} className="text-gray-300 group-hover:text-blue-500 inline-block transition-colors" />
+                                        <ChevronRight size={16} className="text-gray-300 dark:text-gray-600 group-hover:text-blue-500 dark:group-hover:text-blue-400 inline-block transition-colors" />
                                     </td>
                                 </tr>
                             );
@@ -258,29 +258,29 @@ export default function AdminDashboard() {
                     <div className="p-12 text-center text-gray-400">Loading records...</div>
                 ) : records.length === 0 && (
                     <div className="p-12 text-center">
-                        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-4">
+                        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 mb-4">
                             <Package size={24} className="text-gray-400" />
                         </div>
-                        <h3 className="text-lg font-medium text-gray-900">No records found</h3>
-                        <p className="text-gray-500 mt-1">Try adjusting your filters or search query.</p>
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-white">No records found</h3>
+                        <p className="text-gray-500 dark:text-gray-400 mt-1">Try adjusting your filters or search query.</p>
                     </div>
                 )}
             </div>
 
             {/* Pagination Controls */}
             {pagination.pages > 1 && (
-                <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between bg-gray-50/50">
-                    <div className="text-sm text-gray-500">
-                        Showing <span className="font-medium text-gray-900">{((pagination.page - 1) * 10) + 1}</span> to <span className="font-medium text-gray-900">{Math.min(pagination.page * 10, pagination.total)}</span> of <span className="font-medium text-gray-900">{pagination.total}</span> records
+                <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between bg-gray-50/50 dark:bg-gray-800/50">
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                        Showing <span className="font-medium text-gray-900 dark:text-white">{((pagination.page - 1) * 10) + 1}</span> to <span className="font-medium text-gray-900 dark:text-white">{Math.min(pagination.page * 10, pagination.total)}</span> of <span className="font-medium text-gray-900 dark:text-white">{pagination.total}</span> records
                     </div>
                     <div className="flex items-center gap-2">
                         <button 
                             onClick={() => handlePageChange(currentPage - 1)}
                             disabled={currentPage === 1}
-                            className={`p-2 rounded-lg border border-gray-200 transition-all ${
+                            className={`p-2 rounded-lg border border-gray-200 dark:border-gray-600 transition-all ${
                                 currentPage === 1 
-                                    ? 'bg-gray-50 text-gray-300 cursor-not-allowed' 
-                                    : 'bg-white text-gray-600 hover:bg-gray-50 hover:text-blue-600'
+                                    ? 'bg-gray-50 dark:bg-gray-800 text-gray-300 dark:text-gray-600 cursor-not-allowed' 
+                                    : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 hover:text-blue-600 dark:hover:text-blue-400'
                             }`}
                         >
                             <ChevronLeft size={18} />
