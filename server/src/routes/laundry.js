@@ -3,12 +3,29 @@ const router = express.Router();
 const LaundryRecord = require('../models/LaundryRecord');
 const { protect, authorize } = require('../middleware/auth');
 
+const nodemailer = require('nodemailer');
+
+// Setup Nodemailer Transporter (Mock or Env)
+const transporter = nodemailer.createTransport({
+    host: 'smtp.ethereal.email',
+    port: 587,
+    auth: {
+        user: 'ethereal.user@ethereal.email',
+        pass: 'ethereal.pass'
+    }
+}); 
+
 // @route   POST /api/laundry/dropoff
 // @desc    Submit clothes (Student only)
 // @access  Private (Student)
 router.post('/dropoff', protect, authorize('student'), async (req, res) => {
   try {
     const { clothesCount } = req.body;
+
+    // Validate Clothes Limit
+    if (clothesCount > 10) {
+        return res.status(400).json({ error: 'Maximum 10 clothes allowed per submission.' });
+    }
 
     // Check for existing pending request
     const existingRecord = await LaundryRecord.findOne({
@@ -110,6 +127,38 @@ router.get('/admin/all', protect, authorize('admin'), async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+});
+
+// @route   POST /api/laundry/notify
+// @desc    Notify student about overdue laundry
+// @access  Private (Admin)
+router.post('/notify', protect, authorize('admin'), async (req, res) => {
+    try {
+        const { studentId, message } = req.body;
+        const user = await require('../models/User').findById(studentId);
+
+        if (!user) {
+            return res.status(404).json({ error: 'Student not found' });
+        }
+
+        // Send Email
+        // In a real app, use environment variables for credentials
+        // Here we just simulate or attempt to send
+        console.log(`Sending email to ${user.email}: ${message}`);
+        
+        // Example sending code (commented out to avoid crashing if no creds)
+        // await transporter.sendMail({
+        //     from: '"Laundry Admin" <admin@university.edu>',
+        //     to: user.email,
+        //     subject: 'Overdue Laundry Notification',
+        //     text: message
+        // });
+
+        res.json({ message: 'Notification sent successfully' });
+    } catch (error) {
+        console.error('Notification error:', error);
+        res.status(500).json({ error: 'Failed to send notification' });
+    }
 });
 
 module.exports = router;

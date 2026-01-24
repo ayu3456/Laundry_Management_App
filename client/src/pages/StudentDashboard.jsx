@@ -28,6 +28,11 @@ export default function StudentDashboard() {
 
   const handleDropOff = async (e) => {
     e.preventDefault();
+    if (Number(clothesCount) > 10) {
+        alert('Maximum 10 clothes allowed per submission.');
+        return;
+    }
+
     try {
       await axios.post('http://localhost:3000/api/laundry/dropoff', 
         { clothesCount: Number(clothesCount) },
@@ -37,7 +42,7 @@ export default function StudentDashboard() {
       fetchHistory(); // Refresh list
       alert('Clothes dropped off successfully!');
     } catch (err) {
-      alert('Failed to drop off clothes');
+      alert(err.response?.data?.error || 'Failed to drop off clothes');
     }
   };
 
@@ -63,7 +68,10 @@ export default function StudentDashboard() {
       <div className="flex justify-between items-center bg-white p-6 rounded-lg shadow-sm border border-gray-100">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Welcome, {user.name}</h1>
-          <p className="text-gray-500">{user.hostel} - Room {user.room}</p>
+          <div className="text-gray-500 text-sm mt-1">
+            <p>Roll No: <span className="font-medium text-gray-700">{user.rollNumber}</span></p>
+            <p className="mt-0.5">{user.hostel} <span className="mx-1">•</span> Room {user.room}</p>
+          </div>
         </div>
         <button onClick={logout} className="text-sm font-medium text-red-600 hover:text-red-500">
           Sign out
@@ -76,6 +84,7 @@ export default function StudentDashboard() {
           <input 
             type="number" 
             min="1" 
+            max="10"
             required 
             placeholder="Number of clothes" 
             value={clothesCount} 
