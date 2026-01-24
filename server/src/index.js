@@ -20,8 +20,14 @@ app.use((req, res, next) => {
 
 // Routes
 app.get('/api/ping', (req, res) => res.json({ status: 'ok', serverTime: new Date() }));
-app.use('/api/auth', require('./routes/auth'));
 app.use('/api/laundry', require('./routes/laundry'));
+app.use('/api/auth', require('./routes/auth'));
+
+// Global API 404 (for anything starting with /api that didn't match above)
+app.all('/api/*', (req, res) => {
+    console.log(`❌ Global API 404: ${req.method} ${req.url}`);
+    res.status(404).json({ error: `API route not found: ${req.url}` });
+});
 
 // Serve Static Assets in Production
 if (process.env.NODE_ENV === 'production') {

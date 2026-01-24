@@ -14,24 +14,17 @@ router.post('/dropoff', protect, authorize('student'), dropOffClothes);
 router.get('/my-history', protect, authorize('student'), getMyHistory);
 router.put('/receive/:id', protect, authorize('student'), markReceived);
 
-// Debug middleware for admin routes
-router.use('/admin', (req, res, next) => {
-    console.log(`Laundry Router: Admin access detected - ${req.method} ${req.url}`);
-    next();
-});
-
+// Admin Routes (Direct paths to avoid req.url stripping issues)
 router.get('/admin/stats', protect, authorize('admin'), getStats);
 router.get('/admin/all', protect, authorize('admin'), getAllRecords);
 router.post('/notify', protect, authorize('admin'), notifyStudent);
 
 // Fallthrough logger for laundry router
-router.use((req, res) => {
-    console.log(`❌ Laundry Router Fallthrough 404: ${req.method} ${req.originalUrl} -> Local: ${req.url}`);
+router.all('*', (req, res) => {
+    console.log(`❌ Laundry Router 404 Fallthrough: ${req.method} ${req.originalUrl}`);
     res.status(404).json({ 
-        error: 'Route not found in Laundry Router',
-        method: req.method,
-        path: req.originalUrl,
-        localPath: req.url
+        error: 'Endpoint not found in Laundry Router',
+        requestedPath: req.originalUrl
     });
 });
 
