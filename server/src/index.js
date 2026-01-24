@@ -7,10 +7,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/laundry-app')
-  .then(() => console.log('✅ Connected to MongoDB'))
-  .catch(err => console.error('❌ Could not connect to MongoDB:', err));
+// PRE-FLIGHT DIAGNOSTIC: Guaranteed JSON for /api/test
+app.get('/api/test-direct', (req, res) => {
+    res.json({ message: 'Success! Root Express instance is handling /api requests.', route: '/api/test-direct' });
+});
 
 // 1. Request Logger (MUST be first)
 app.use((req, res, next) => {
@@ -31,13 +31,13 @@ app.use('/api/laundry', laundryRoutes);
 app.use('/api/auth', require('./routes/auth'));
 
 // 5. Catch-all for undefined API routes (MUST return JSON, not HTML)
-app.all('/api/(.*)', (req, res) => {
-    console.log(`❌ 404 - API Endpoint Not Found: ${req.method} ${req.url}`);
+app.use('/api', (req, res) => {
+    console.log(`❌ 404 - Global API Catch-all: ${req.method} ${req.url}`);
     res.status(404).json({ 
         error: 'API Endpoint Not Found',
         method: req.method,
         url: req.url,
-        hint: 'Check if the route is correctly registered in routes/laundry.js'
+        instruction: 'If this is a valid route, ensure it is registered ABOVE this handler in src/index.js'
     });
 });
 
@@ -48,8 +48,9 @@ if (process.env.NODE_ENV === 'production') {
   console.log(`Serving static assets from: ${distPath}`);
   app.use(express.static(distPath));
 
-  app.get('*', (req, res, next) => {
-    // If it's an API call that leaked through, skip to 404 handler
+  // Express 5 syntax for catch-all: (.*)
+  app.get('(.*)', (req, res, next) => {
+    // If it is an API call that leaked through, skip to 404 handler
     if (req.url.startsWith('/api')) return next();
     res.sendFile(path.resolve(distPath, 'index.html'));
   });
@@ -58,14 +59,25 @@ if (process.env.NODE_ENV === 'production') {
 // 7. Global Error Handler
 app.use((err, req, res, next) => {
     console.error('🔥 UNHANDLED ERROR:', err);
-    res.status(500).json({ error: 'Internal Server Error', message: err.message });
+    // Explicitly return JSON for ALL errors
+    res.status(err.status || 500).json({ 
+        error: 'Server Error', 
+        message: err.message,
+        path: req.url 
+    });
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
+  // Database connection is async, move inside listen or handle properly
+  console.log('Connecting to MongoDB...');
+  mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/laundry-app')
+    .then(() => console.log('✅ Connected to MongoDB'))
+    .catch(err => console.error('❌ Could not connect to MongoDB:', err));
+
   console.log(`-----------------------------------------`);
   console.log(`🚀 Laundry Server Ready on Port ${PORT}`);
-  console.log(`📡 Health Check: http://localhost:${PORT}/api/ping`);
-  console.log(`📊 Stats Route: http://localhost:${PORT}/api/laundry/admin/stats`);
+  console.log(`📡 Ping: http://localhost:${PORT}/api/ping`);
+  console.log(`📊 Stats: http://localhost:${PORT}/api/laundry/admin/stats`);
   console.log(`-----------------------------------------`);
 });

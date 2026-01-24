@@ -19,12 +19,13 @@ router.get('/admin/stats', protect, authorize('admin'), getStats);
 router.get('/admin/all', protect, authorize('admin'), getAllRecords);
 router.post('/notify', protect, authorize('admin'), notifyStudent);
 
-// Fallthrough logger for laundry router
-router.all('(.*)', (req, res) => {
+// Fallthrough logger for laundry router (using middleware instead of regex for safety)
+router.use((req, res, next) => {
     console.log(`❌ Laundry Router 404 Fallthrough: ${req.method} ${req.originalUrl}`);
     res.status(404).json({ 
         error: 'Endpoint not found in Laundry Router',
-        requestedPath: req.originalUrl
+        requestedPath: req.originalUrl,
+        hint: 'Verified routes: /dropoff, /my-history, /receive/:id, /admin/stats, /admin/all, /notify'
     });
 });
 
