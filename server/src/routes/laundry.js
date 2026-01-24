@@ -135,7 +135,7 @@ router.get('/admin/all', protect, authorize('admin'), async (req, res) => {
     }
 
     const records = await LaundryRecord.find(query)
-      .populate('studentId', 'name rollNumber hostel room')
+      .populate('studentId', 'name rollNumber hostel room email')
       .sort({ depositDate: -1 });
 
     // Filter by rollNumber in memory if simple query

@@ -1,7 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import { Search, Filter, Bell, X, AlertCircle } from 'lucide-react';
+import { 
+  Search, 
+  Filter, 
+  X, 
+  AlertCircle, 
+  CheckCircle, 
+  Clock, 
+  Package, 
+  Calendar,
+  User,
+  Mail,
+  LogOut,
+  ChevronRight
+} from 'lucide-react';
 
 export default function AdminDashboard() {
   const { user, logout } = useAuth();
@@ -10,10 +23,8 @@ export default function AdminDashboard() {
   const [searchRoll, setSearchRoll] = useState('');
   
   // Modal State
-  const [showModal, setShowModal] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState(null);
-  const [emailMessage, setEmailMessage] = useState('');
-  const [sending, setSending] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
     fetchRecords();
@@ -34,172 +45,301 @@ export default function AdminDashboard() {
       console.error(err);
     }
   };
-  const openNotifyModal = (record) => {
-    setSelectedStudent(record.studentId);
-    setEmailMessage(`Dear ${record.studentId.name},\n\nYou have not received your clothes for more than 5 days.\nPlease collect them from the laundry office as soon as possible.\n\nRegards,\nLaundry Admin`);
-    setShowModal(true);
+
+  const checkIsOverdue = (record) => {
+    if (record.status === 'RECEIVED') return false;
+    return new Date() > new Date(record.returnDate);
   };
 
-  const closeModal = () => {
-    setShowModal(false);
-    setSelectedStudent(null);
-    setEmailMessage('');
-  };
-
-  const sendNotification = async () => {
-    if (!selectedStudent) return;
-    setSending(true);
+  const handleSendEmail = async () => {
+    if (!selectedRecord) return;
+    setIsSending(true);
     try {
+        const studentName = selectedRecord.studentId?.name || 'Student';
+        const message = `Dear ${studentName},\n\nThis is a reminder that your laundry (submitted on ${new Date(selectedRecord.depositDate).toLocaleDateString()}) is now overdue. Please collect it from the laundry facility as soon as possible.\n\nThank you,\nUniversity Laundry Service`;
+
         await axios.post('http://localhost:3000/api/laundry/notify', 
-            { studentId: selectedStudent._id, message: emailMessage },
+            { studentId: selectedRecord.studentId?._id, message },
             { headers: { Authorization: `Bearer ${user.token}` } }
         );
         alert('Notification sent successfully!');
-        closeModal();
+        setSelectedRecord(null);
     } catch (err) {
         console.error(err);
         alert('Failed to send notification');
     } finally {
-        setSending(false);
+        setIsSending(false);
     }
   };
 
   return (
-    <div className="space-y-6">
-       <div className="flex justify-between items-center bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-gray-500">Manage all student laundry records</p>
+    <div className="min-h-screen bg-gray-50/50 p-6 md:p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Dashboard</h1>
+            <p className="text-gray-500 mt-1">Overview of laundry operations and student requests</p>
+          </div>
+          <button 
+            onClick={logout} 
+            className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-red-600 bg-red-50 hover:bg-red-100 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+          >
+            <LogOut size={16} className="mr-2" />
+            Sign Out
+          </button>
         </div>
-        <button onClick={logout} className="text-sm font-medium text-red-600 hover:text-red-500">
-          Sign out
-        </button>
-      </div>
 
-      <div className="flex gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-        <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-            <input 
-                type="text" 
-                placeholder="Search by Roll Number..." 
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
-                value={searchRoll}
-                onChange={e => setSearchRoll(e.target.value)}
-            />
+        {/* Filters */}
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 items-center">
+            <div className="relative flex-1 w-full">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <input 
+                    type="text" 
+                    placeholder="Search by Roll Number..." 
+                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+                    value={searchRoll}
+                    onChange={e => setSearchRoll(e.target.value)}
+                />
+            </div>
+            <div className="relative w-full md:w-64">
+                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <select 
+                    className="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none text-sm cursor-pointer"
+                    value={statusFilter}
+                    onChange={e => setStatusFilter(e.target.value)}
+                >
+                    <option value="">All Status</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="RECEIVED">Received</option>
+                </select>
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                    <ChevronRight className="rotate-90 text-gray-400" size={16} />
+                </div>
+            </div>
         </div>
-        <div className="relative w-48">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-            <select 
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white"
-                value={statusFilter}
-                onChange={e => setStatusFilter(e.target.value)}
-            >
-                <option value="">All Status</option>
-                <option value="PENDING">Pending</option>
-                <option value="RECEIVED">Received</option>
-                <option value="OVERDUE">Overdue</option>
-            </select>
-        </div>
-      </div>
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-        <table className="w-full text-left">
-            <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                    <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Student</th>
-                    <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Location</th>
-                    <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Clothes</th>
-                    <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Dates</th>
-                    <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-                {records.map(record => (
-                    <tr key={record._id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4">
-                            <div className="text-sm font-medium text-gray-900">{record.studentId?.name || 'Unknown'}</div>
-                            <div className="text-sm text-gray-500">{record.studentId?.rollNumber}</div>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
-                            {record.studentId?.hostel} - {record.studentId?.room}
-                        </td>
-                        <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                            {record.clothesCount}
-                        </td>
-                         <td className="px-6 py-4 text-sm text-gray-500">
-                            <div>In: {new Date(record.depositDate).toLocaleDateString()}</div>
-                            <div>Out: {new Date(record.returnDate).toLocaleDateString()}</div>
-                        </td>
-                        <td className="px-6 py-4">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                record.calculatedStatus === 'RECEIVED' ? 'bg-green-100 text-green-800' : 
-                                record.calculatedStatus === 'OVERDUE' ? 'bg-red-100 text-red-800' :
-                                'bg-yellow-100 text-yellow-800'
-                            }`}>
-                                {record.calculatedStatus === 'OVERDUE' && <AlertCircle size={12} className="mr-1"/>}
-                                {record.calculatedStatus || record.status}
-                            </span>
-                            
-                            {record.calculatedStatus === 'OVERDUE' && (
-                                <button 
-                                    onClick={() => openNotifyModal(record)}
-                                    className="ml-3 text-red-600 hover:text-red-900 text-sm font-medium flex items-center gap-1"
-                                    title="Send Notification"
+        {/* Table */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                    <thead>
+                        <tr className="bg-gray-50/50 border-b border-gray-100">
+                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Student</th>
+                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Clothes</th>
+                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Submit Date</th>
+                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 text-sm">
+                        {records.map(record => {
+                            const isOverdue = checkIsOverdue(record);
+                            return (
+                                <tr 
+                                    key={record._id} 
+                                    onClick={() => setSelectedRecord(record)}
+                                    className="group hover:bg-blue-50/30 transition-colors cursor-pointer"
                                 >
-                                    <Bell size={14} /> Notify
-                                </button>
-                            )}
-                        </td>
-                    </tr>
-                ))}
-            </tbody>
-        </table>
-        {records.length === 0 && <div className="p-8 text-center text-gray-500">No records found.</div>}
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs uppercase">
+                                                {record.studentId?.name?.charAt(0) || 'U'}
+                                            </div>
+                                            <div>
+                                                <div className="font-medium text-gray-900 group-hover:text-blue-700 transition-colors">
+                                                    {record.studentId?.name || 'Unknown'}
+                                                </div>
+                                                <div className="text-gray-500 text-xs">
+                                                    {record.studentId?.rollNumber}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-gray-600">
+                                        <div className="flex items-center gap-2">
+                                            <Package size={16} className="text-gray-400" />
+                                            {record.clothesCount} items
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-gray-600">
+                                        <div className="flex items-center gap-2">
+                                            <Calendar size={16} className="text-gray-400" />
+                                            {new Date(record.depositDate).toLocaleDateString()}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
+                                            record.status === 'RECEIVED' 
+                                                ? 'bg-green-50 text-green-700 border-green-100' 
+                                                : isOverdue 
+                                                    ? 'bg-red-50 text-red-700 border-red-100'
+                                                    : 'bg-yellow-50 text-yellow-700 border-yellow-100'
+                                        }`}>
+                                            {record.status === 'RECEIVED' && <CheckCircle size={12} className="mr-1.5" />}
+                                            {isOverdue && record.status !== 'RECEIVED' && <AlertCircle size={12} className="mr-1.5" />}
+                                            {record.status !== 'RECEIVED' && !isOverdue && <Clock size={12} className="mr-1.5" />}
+                                            
+                                            {record.status === 'RECEIVED' ? 'Collected' : isOverdue ? 'Overdue' : 'Processing'}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                        <ChevronRight size={16} className="text-gray-300 group-hover:text-blue-500 inline-block transition-colors" />
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
+                {records.length === 0 && (
+                    <div className="p-12 text-center">
+                        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-4">
+                            <Package size={24} className="text-gray-400" />
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900">No records found</h3>
+                        <p className="text-gray-500 mt-1">Try adjusting your filters or search query.</p>
+                    </div>
+                )}
+            </div>
+        </div>
       </div>
 
-      {/* Notification Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg w-full max-w-md shadow-xl">
-                <div className="flex justify-between items-center p-4 border-b">
-                    <h3 className="text-lg font-semibold text-gray-900">Notify Student</h3>
-                    <button onClick={closeModal} className="text-gray-400 hover:text-gray-500">
+      {/* Detail Modal */}
+      {selectedRecord && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div 
+                className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity" 
+                onClick={() => setSelectedRecord(null)}
+            />
+            
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden relative z-10 animate-in fade-in zoom-in-95 duration-200">
+                {/* Modal Header */}
+                <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                    <h3 className="text-lg font-semibold text-gray-900">Laundry Details</h3>
+                    <button 
+                        onClick={() => setSelectedRecord(null)}
+                        className="p-1 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                    >
                         <X size={20} />
                     </button>
                 </div>
-                <div className="p-4 space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Student Name</label>
-                        <input type="text" value={selectedStudent?.name} disabled className="mt-1 block w-full bg-gray-50 border-gray-300 rounded-md shadow-sm sm:text-sm p-2 border" />
+
+                {/* Modal Content */}
+                <div className="p-6 space-y-6">
+                    {/* Student Info Section */}
+                    <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                        <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">
+                            {selectedRecord.studentId?.name?.charAt(0) || 'S'}
+                        </div>
+                        <div>
+                            <h4 className="text-base font-semibold text-gray-900">{selectedRecord.studentId?.name}</h4>
+                            <div className="text-sm text-gray-500 flex items-center gap-2 mt-1">
+                                <span className="bg-white px-2 py-0.5 rounded border border-gray-200 text-xs font-mono">
+                                    {selectedRecord.studentId?.rollNumber}
+                                </span>
+                            </div>
+                            <div className="text-sm text-gray-500 mt-1 flex items-center gap-1.5">
+                                <Mail size={12} /> {selectedRecord.studentId?.email || 'N/A'}
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Roll Number</label>
-                        <input type="text" value={selectedStudent?.rollNumber} disabled className="mt-1 block w-full bg-gray-50 border-gray-300 rounded-md shadow-sm sm:text-sm p-2 border" />
+
+                    {/* Status Banner */}
+                    <div className={`p-4 rounded-xl border ${
+                        selectedRecord.status === 'RECEIVED' 
+                            ? 'bg-green-50 border-green-100' 
+                            : checkIsOverdue(selectedRecord) 
+                                ? 'bg-red-50 border-red-100'
+                                : 'bg-yellow-50 border-yellow-100'
+                    }`}>
+                        <div className="flex items-center gap-3">
+                            {selectedRecord.status === 'RECEIVED' 
+                                ? <CheckCircle className="text-green-600" size={24} />
+                                : checkIsOverdue(selectedRecord) 
+                                    ? <AlertCircle className="text-red-600" size={24} />
+                                    : <Clock className="text-yellow-600" size={24} />
+                            }
+                            <div>
+                                <div className={`font-semibold ${
+                                    selectedRecord.status === 'RECEIVED' ? 'text-green-900' :
+                                    checkIsOverdue(selectedRecord) ? 'text-red-900' : 'text-yellow-900'
+                                }`}>
+                                    {selectedRecord.status === 'RECEIVED' ? 'Collected' : 
+                                     checkIsOverdue(selectedRecord) ? 'Overdue Item' : 'In Progress'}
+                                </div>
+                                <div className={`text-sm ${
+                                    selectedRecord.status === 'RECEIVED' ? 'text-green-700' :
+                                    checkIsOverdue(selectedRecord) ? 'text-red-700' : 'text-yellow-700'
+                                }`}>
+                                    {selectedRecord.status === 'RECEIVED'
+                                        ? `Collected on ${new Date(selectedRecord.receivedDate || selectedRecord.updatedAt).toLocaleDateString()}`
+                                        : checkIsOverdue(selectedRecord) 
+                                            ? `Was expected by ${new Date(selectedRecord.returnDate).toLocaleDateString()}`
+                                            : `Expected by ${new Date(selectedRecord.returnDate).toLocaleDateString()}`
+                                    }
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Email Address</label>
-                        <input type="text" value={selectedStudent?.email} disabled className="mt-1 block w-full bg-gray-50 border-gray-300 rounded-md shadow-sm sm:text-sm p-2 border" />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Message</label>
-                        <textarea 
-                            rows={4} 
-                            value={emailMessage} 
-                            onChange={e => setEmailMessage(e.target.value)}
-                            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm p-2 border"
-                        />
+
+                    {/* Details Grid */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="p-3">
+                            <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-1">Submitted On</label>
+                            <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                                <Calendar size={14} className="text-gray-400" />
+                                {new Date(selectedRecord.depositDate).toLocaleDateString()}
+                            </div>
+                        </div>
+                        <div className="p-3">
+                            <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-1">Expected Return</label>
+                            <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                                <Calendar size={14} className="text-gray-400" />
+                                {new Date(selectedRecord.returnDate).toLocaleDateString()}
+                            </div>
+                        </div>
+                        <div className="p-3">
+                            <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-1">Clothes Count</label>
+                            <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                                <Package size={14} className="text-gray-400" />
+                                {selectedRecord.clothesCount} items
+                            </div>
+                        </div>
+                        <div className="p-3">
+                            <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-1">Location</label>
+                            <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                                <User size={14} className="text-gray-400" />
+                                {selectedRecord.studentId?.hostel} - {selectedRecord.studentId?.room}
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div className="flex justify-end gap-3 p-4 bg-gray-50 rounded-b-lg">
-                    <button onClick={closeModal} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
-                        Cancel
+
+                {/* Footer Actions */}
+                <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+                    <button 
+                        onClick={() => setSelectedRecord(null)}
+                        className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm"
+                    >
+                        Close
                     </button>
                     <button 
-                        onClick={sendNotification} 
-                        disabled={sending}
-                        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 flex items-center gap-2"
+                        onClick={handleSendEmail}
+                        disabled={!checkIsOverdue(selectedRecord) || selectedRecord.status === 'RECEIVED' || isSending}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 shadow-sm transition-all ${
+                            checkIsOverdue(selectedRecord) && selectedRecord.status !== 'RECEIVED'
+                                ? 'bg-red-600 text-white hover:bg-red-700 shadow-red-200'
+                                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                        }`}
+                        title={
+                            checkIsOverdue(selectedRecord) && selectedRecord.status !== 'RECEIVED'
+                            ? "Send email notification to student"
+                            : "Only available for overdue items"
+                        }
                     >
-                        {sending ? 'Sending...' : 'Send Notification'}
+                        <Mail size={16} />
+                        {isSending ? 'Sending...' : 'Send Overdue Email'}
                     </button>
                 </div>
             </div>
