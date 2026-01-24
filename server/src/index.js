@@ -7,37 +7,34 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// PRE-FLIGHT DIAGNOSTIC: Guaranteed JSON for /api/test
-app.get('/api/test-direct', (req, res) => {
-    res.json({ message: 'Success! Root Express instance is handling /api requests.', route: '/api/test-direct' });
-});
+// PRE-FLIGHT DIAGNOSTICS (Guaranteed Responses)
+app.get('/test-help', (req, res) => res.send('SERVER_IS_REACHABLE_ON_PORT_3000'));
+app.get('/api/test-direct', (req, res) => res.json({ status: 'ok', source: 'root-express' }));
 
-// 1. Request Logger (MUST be first)
+// 1. Request Logger
 app.use((req, res, next) => {
-  const timestamp = new Date().toISOString();
-  console.log(`[${timestamp}] ${req.method} ${req.url}`);
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
 });
 
-// 2. Immediate Diagnostic Routes
+// 2. Health Ping
 app.get('/api/ping', (req, res) => res.json({ status: 'server-is-alive', time: new Date() }));
 
-// 3. Mount Laundry Routes Early
-const laundryRoutes = require('./routes/laundry');
-console.log('Mounting Laundry Routes at /api/laundry');
-app.use('/api/laundry', laundryRoutes);
+// 3. Mount Routes
+console.log('--- Registering API Routes ---');
+app.use('/api/laundry', (req, res, next) => {
+    console.log('Matched /api/laundry path');
+    next();
+}, require('./routes/laundry'));
 
-// 4. Auth Routes
 app.use('/api/auth', require('./routes/auth'));
 
-// 5. Catch-all for undefined API routes (MUST return JSON, not HTML)
+// 5. Catch-all for undefined API routes (MUST return JSON)
 app.use('/api', (req, res) => {
-    console.log(`❌ 404 - Global API Catch-all: ${req.method} ${req.url}`);
+    console.log(`❌ API Endpoint Not Found: ${req.method} ${req.url}`);
     res.status(404).json({ 
-        error: 'API Endpoint Not Found',
-        method: req.method,
-        url: req.url,
-        instruction: 'If this is a valid route, ensure it is registered ABOVE this handler in src/index.js'
+        error: 'Backend API route not found',
+        receivedPath: req.url 
     });
 });
 

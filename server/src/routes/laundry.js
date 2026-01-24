@@ -10,23 +10,20 @@ const {
     getStats
 } = require('../controllers/laundryController');
 
-router.post('/dropoff', protect, authorize('student'), dropOffClothes);
-router.get('/my-history', protect, authorize('student'), getMyHistory);
-router.put('/receive/:id', protect, authorize('student'), markReceived);
-
-// Admin Routes (Direct paths to avoid req.url stripping issues)
+// IMPORTANT: Stats must be HIGHER than generic /:id routes
 router.get('/admin/stats', protect, authorize('admin'), getStats);
 router.get('/admin/all', protect, authorize('admin'), getAllRecords);
 router.post('/notify', protect, authorize('admin'), notifyStudent);
 
-// Fallthrough logger for laundry router (using middleware instead of regex for safety)
-router.use((req, res, next) => {
-    console.log(`❌ Laundry Router 404 Fallthrough: ${req.method} ${req.originalUrl}`);
-    res.status(404).json({ 
-        error: 'Endpoint not found in Laundry Router',
-        requestedPath: req.originalUrl,
-        hint: 'Verified routes: /dropoff, /my-history, /receive/:id, /admin/stats, /admin/all, /notify'
-    });
+// Student Routes
+router.post('/dropoff', protect, authorize('student'), dropOffClothes);
+router.get('/my-history', protect, authorize('student'), getMyHistory);
+router.put('/receive/:id', protect, authorize('student'), markReceived);
+
+// Catch-all for /api/laundry/* subpaths
+router.use((req, res) => {
+    console.log(`❌ Laundry Router Miss: ${req.method} ${req.url}`);
+    res.status(404).json({ error: 'Endpoint not found in laundry router', path: req.url });
 });
 
 module.exports = router;
