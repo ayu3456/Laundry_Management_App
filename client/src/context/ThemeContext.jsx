@@ -31,6 +31,9 @@ export const ThemeProvider = ({ children }) => {
     } else {
       document.documentElement.classList.remove('dark');
     }
+    
+    // Smooth transition
+    document.body.style.transition = 'background-color 0.3s ease, color 0.3s ease';
   }, [isDarkMode]);
 
   const toggleTheme = () => {
