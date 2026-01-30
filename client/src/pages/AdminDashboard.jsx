@@ -90,7 +90,10 @@ export default function AdminDashboard() {
 
   const checkIsOverdue = (record) => {
     if (record.status === 'RECEIVED') return false;
-    return new Date() > new Date(record.returnDate);
+    const returnDate = new Date(record.returnDate);
+    const overdueThreshold = new Date(returnDate);
+    overdueThreshold.setDate(overdueThreshold.getDate() + 5);
+    return new Date() > overdueThreshold;
   };
 
   const handleSendEmail = async () => {
@@ -283,31 +286,72 @@ export default function AdminDashboard() {
       {/* Detail Modal */}
       {selectedRecord && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => setSelectedRecord(null)} />
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden relative z-10">
+            <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm cursor-pointer" onClick={() => setSelectedRecord(null)} />
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden relative z-50">
                 <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">Details</h3>
-                    <button onClick={() => setSelectedRecord(null)} className="p-1 text-gray-400 hover:text-gray-600"><X size={20} /></button>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">Laundry Details</h3>
+                    <button onClick={() => setSelectedRecord(null)} className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"><X size={20} /></button>
                 </div>
-                <div className="p-6 space-y-4">
+                <div className="p-6 space-y-5">
+                    {/* Student Info */}
                     <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
-                        <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">
+                        <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-lg">
                             {selectedRecord.studentId?.name?.charAt(0)}
                         </div>
                         <div>
                             <h4 className="font-bold text-gray-900 dark:text-white">{selectedRecord.studentId?.name}</h4>
-                            <p className="text-sm text-gray-500">{selectedRecord.studentId?.rollNumber}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">{selectedRecord.studentId?.rollNumber}</p>
                         </div>
                     </div>
+
+                    {/* Details Grid */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+                            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Clothes Count</p>
+                            <p className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                <Package size={18} className="text-gray-400" />
+                                {selectedRecord.clothesCount} items
+                            </p>
+                        </div>
+                        <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+                            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Status</p>
+                            <span className={`inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold border ${
+                                selectedRecord.status === 'RECEIVED' 
+                                    ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-100 dark:border-green-800' 
+                                    : checkIsOverdue(selectedRecord)
+                                        ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-100 dark:border-red-800'
+                                        : 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 border-yellow-100 dark:border-yellow-800'
+                            }`}>
+                                {selectedRecord.status === 'RECEIVED' ? 'Collected' : checkIsOverdue(selectedRecord) ? 'Overdue' : 'Processing'}
+                            </span>
+                        </div>
+                        <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+                            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Submitted</p>
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                                <Calendar size={16} className="text-gray-400" />
+                                {new Date(selectedRecord.depositDate).toLocaleDateString()}
+                            </p>
+                        </div>
+                        <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+                            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Expected Return</p>
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                                <Clock size={16} className="text-gray-400" />
+                                {new Date(selectedRecord.returnDate).toLocaleDateString()}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Action Button */}
                     <button 
                         onClick={handleSendEmail}
                         disabled={!checkIsOverdue(selectedRecord) || selectedRecord.status === 'RECEIVED' || isSending}
-                        className={`w-full py-3 rounded-xl font-bold transition-all ${
+                        className={`w-full py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
                             checkIsOverdue(selectedRecord) && selectedRecord.status !== 'RECEIVED'
-                            ? 'bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-200'
+                            ? 'bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-200 dark:shadow-red-900/50'
                             : 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
                         }`}
                     >
+                        <Mail size={18} />
                         {isSending ? 'Sending...' : 'Send Overdue Reminder'}
                     </button>
                 </div>

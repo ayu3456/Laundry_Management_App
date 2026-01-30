@@ -186,9 +186,13 @@ exports.getStats = async (req, res) => {
         // Fetch counts with explicit status strings
         const totalPending = await LaundryRecord.countDocuments({ status: 'PENDING' });
         
+        // Overdue = current date is MORE than 5 days after returnDate
+        const fiveDaysAgo = new Date();
+        fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+        
         const overdueCount = await LaundryRecord.countDocuments({
             status: 'PENDING',
-            returnDate: { $lt: new Date() }
+            returnDate: { $lt: fiveDaysAgo }
         });
 
         const collectedToday = await LaundryRecord.countDocuments({
@@ -210,7 +214,7 @@ exports.getStats = async (req, res) => {
             dropoffsToday
         };
 
-        console.log(`Stats DB Debug: Pending=${totalPending}, Total=${debugTotal}, DroppedToday=${dropoffsToday}`);
+        console.log(`Stats DB Debug: Pending=${totalPending}, Overdue=${overdueCount}, Total=${debugTotal}, DroppedToday=${dropoffsToday}`);
         console.log('Stats calculated successfully:', statsData);
         res.json(statsData);
     } catch (error) {
