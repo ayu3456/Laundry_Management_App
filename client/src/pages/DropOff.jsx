@@ -19,7 +19,7 @@ export default function DropOff() {
     e.preventDefault();
     setStatus('loading');
     try {
-      await axios.post('http://localhost:3000/api/dropoff', {
+      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/laundry/dropoff\`, {
         ...formData,
         clothesCount: Number(formData.clothesCount)
       });

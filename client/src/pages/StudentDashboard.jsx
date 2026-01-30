@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
-import ThemeToggle from '../components/ThemeToggle';
 import { 
   Send, 
   Clock, 
@@ -28,7 +27,7 @@ export default function StudentDashboard() {
 
   const fetchHistory = async () => {
     try {
-      const res = await axios.get('http://localhost:3000/api/laundry/my-history', {
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/laundry/my-history\`, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setHistory(res.data);
@@ -47,8 +46,7 @@ export default function StudentDashboard() {
     }
     setSubmitting(true);
     try {
-      await axios.post('http://localhost:3000/api/laundry/dropoff', 
-        { clothesCount: Number(clothesCount) },
+      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/laundry/dropoff\`, \n        { clothesCount: Number(clothesCount) },
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
       setClothesCount('');
@@ -64,7 +62,7 @@ export default function StudentDashboard() {
   const markReceived = async (id) => {
     if (!confirm('Confirm you have received your clothes?')) return;
     try {
-      await axios.put(`http://localhost:3000/api/laundry/receive/${id}`, {}, {
+      await axios.put(`${import.meta.env.VITE_API_BASE_URL}/laundry/receive/${id}\`, {}, {
          headers: { Authorization: `Bearer ${user.token}` }
       });
       toast.success('Laundry marked as received!');
@@ -92,7 +90,6 @@ export default function StudentDashboard() {
             <p className="text-gray-500 dark:text-gray-400 mt-1">Manage your laundry submissions and pickups</p>
           </div>
           <div className="flex items-center gap-3">
-            <ThemeToggle />
             <button 
               onClick={logout} 
               className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
