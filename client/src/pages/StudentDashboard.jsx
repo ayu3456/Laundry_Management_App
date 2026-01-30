@@ -80,19 +80,19 @@ export default function StudentDashboard() {
   const activeLaundry = history.find(r => r.status === 'PENDING');
 
   return (
-    <div className="min-h-screen bg-gray-50/50 dark:bg-[#0f172a] p-6 md:p-8 transition-colors duration-300">
+    <div className="min-h-screen bg-gray-50/50 p-6 md:p-8 transition-colors duration-300">
       <div className="max-w-5xl mx-auto space-y-8">
         
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Student Portal</h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">Manage your laundry submissions and pickups</p>
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Student Portal</h1>
+            <p className="text-gray-500 mt-1">Manage your laundry submissions and pickups</p>
           </div>
           <div className="flex items-center gap-3">
             <button 
               onClick={logout} 
-              className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
             >
               <LogOut size={16} className="mr-2" />
               Sign Out
@@ -101,25 +101,25 @@ export default function StudentDashboard() {
         </div>
 
         {/* Profile Card & Action Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-gray-900 dark:text-gray-100">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-gray-900">
             {/* Profile Info */}
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 md:col-span-1">
+            <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 md:col-span-1">
                 <div className="flex items-center gap-4 mb-6">
-                    <div className="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-2xl">
+                    <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-2xl">
                         {user.name?.charAt(0) || 'S'}
                     </div>
                     <div>
-                        <h2 className="text-lg font-bold text-gray-900 dark:text-white">{user.name}</h2>
-                        <span className="inline-block px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs font-mono rounded mt-1">
+                        <h2 className="text-lg font-bold text-gray-900">{user.name}</h2>
+                        <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-mono rounded mt-1">
                             {user.rollNumber}
                         </span>
                     </div>
                 </div>
                 <div className="space-y-3">
-                    <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
+                    <div className="flex items-center gap-3 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
                         <User size={16} className="text-gray-400" />
                         <div>
-                            <span className="font-medium text-gray-900 dark:text-white">{user.hostel}</span>
+                            <span className="font-medium text-gray-900">{user.hostel}</span>
                             <span className="mx-1 text-gray-400">|</span>
                             Room {user.room}
                         </div>
@@ -128,23 +128,23 @@ export default function StudentDashboard() {
             </div>
 
             {/* Submit / Status Card */}
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 md:col-span-2">
+            <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 md:col-span-2">
                 {activeLaundry ? (
                      <div className="h-full flex flex-col justify-center items-center text-center p-4">
-                        <div className="w-16 h-16 bg-yellow-50 dark:bg-yellow-900/10 rounded-full flex items-center justify-center mb-4">
+                        <div className="w-16 h-16 bg-yellow-50 rounded-full flex items-center justify-center mb-4">
                             <Clock size={32} className="text-yellow-500" />
                         </div>
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Laundry in Process</h3>
-                        <p className="text-gray-500 dark:text-gray-400 max-w-sm mb-6">
-                            You have <span className="font-semibold text-gray-900 dark:text-white">{activeLaundry.clothesCount} clothes</span> currently being washed.
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">Laundry in Process</h3>
+                        <p className="text-gray-500 max-w-sm mb-6">
+                            You have <span className="font-semibold text-gray-900">{activeLaundry.clothesCount} clothes</span> currently being washed.
                             <br/>
-                            Expected collection: <span className="font-semibold text-gray-900 dark:text-white">{new Date(activeLaundry.returnDate).toLocaleDateString()}</span>
+                            Expected collection: <span className="font-semibold text-gray-900">{new Date(activeLaundry.returnDate).toLocaleDateString()}</span>
                         </p>
                         
                         {canReceive(activeLaundry.returnDate) ? (
                             <button 
                                 onClick={() => markReceived(activeLaundry._id)}
-                                className="w-full sm:w-auto px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl transition-all shadow-sm flex items-center justify-center gap-2"
+                                className="w-full sm:w-auto px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-all shadow-lg flex items-center justify-center gap-2"
                             >
                                 <CheckCircle size={20} />
                                 Mark as Received
@@ -159,12 +159,12 @@ export default function StudentDashboard() {
                 ) : (
                     <div>
                         <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-lg font-bold text-gray-900 dark:text-white">New Submission</h2>
-                            <span className="text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded-full border dark:border-gray-600">Max 10 items</span>
+                            <h2 className="text-lg font-bold text-gray-900">New Submission</h2>
+                            <span className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded-full border">Max 10 items</span>
                         </div>
                         <form onSubmit={handleDropOff} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Number of Clothes</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Number of Clothes</label>
                                 <div className="relative">
                                     <Package className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                                     <input 
@@ -175,14 +175,14 @@ export default function StudentDashboard() {
                                         placeholder="e.g. 5" 
                                         value={clothesCount} 
                                         onChange={e => setClothesCount(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-gray-900 dark:text-white"
+                                        className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all font-medium text-gray-900"
                                     />
                                 </div>
                             </div>
                             <button 
                                 type="submit" 
                                 disabled={submitting || !clothesCount}
-                                className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-all shadow-blue-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                                className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-all shadow-blue-300 shadow-xl hover:shadow-2xl flex items-center justify-center gap-2"
                             >
                                 {submitting ? 'Submitting...' : (
                                     <>
@@ -200,10 +200,10 @@ export default function StudentDashboard() {
         </div>
 
         {/* History Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden text-gray-900 dark:text-gray-100">
-            <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2">
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden text-gray-900">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
                 <History size={20} className="text-gray-400" />
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Submission History</h2>
+                <h2 className="text-lg font-bold text-gray-900">Submission History</h2>
             </div>
             
             {loading ? (
@@ -215,34 +215,34 @@ export default function StudentDashboard() {
             ) : (
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
-                        <thead className="bg-gray-50/50 dark:bg-gray-900/40 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            <tr className="border-b dark:border-gray-700">
-                                <th className="px-6 py-4">Submitted</th>
-                                <th className="px-6 py-4">Clothes</th>
-                                <th className="px-6 py-4">Expected Return</th>
-                                <th className="px-6 py-4">Status</th>
+                        <thead className="bg-gray-50/50 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            <tr className="border-b">
+                                <th className="px-6 py-3">Submitted</th>
+                                <th className="px-6 py-3">Clothes</th>
+                                <th className="px-6 py-3">Expected Return</th>
+                                <th className="px-6 py-3">Status</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-gray-700 text-sm">
+                        <tbody className="divide-y divide-gray-100 text-sm">
                             {history.map(record => (
-                                <tr key={record._id} className="hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-colors">
-                                    <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
+                                <tr key={record._id} className="hover:bg-blue-50/20 transition-colors">
+                                    <td className="px-6 py-3 text-gray-600">
                                         <div className="flex items-center gap-2">
                                             <Calendar size={14} className="text-gray-400" />
                                             {new Date(record.depositDate).toLocaleDateString()}
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
+                                    <td className="px-6 py-3 font-medium text-gray-900">
                                         {record.clothesCount} items
                                     </td>
-                                    <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
+                                    <td className="px-6 py-3 text-gray-600">
                                         {new Date(record.returnDate).toLocaleDateString()}
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${
+                                    <td className="px-6 py-3">
+                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${
                                             record.status === 'RECEIVED' 
-                                                ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-100 dark:border-green-800' 
-                                                : 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 border-yellow-100 dark:border-yellow-800'
+                                                ? 'bg-green-100 text-green-800 border-green-200' 
+                                                : 'bg-yellow-100 text-yellow-800 border-yellow-200'
                                         }`}>
                                             {record.status === 'RECEIVED' ? <CheckCircle size={12}/> : <Clock size={12}/>}
                                             {record.status === 'RECEIVED' ? 'Collected' : 'Processing'}

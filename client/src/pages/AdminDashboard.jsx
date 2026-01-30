@@ -152,7 +152,7 @@ export default function AdminDashboard() {
       <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Dashboard</h1>
@@ -160,7 +160,7 @@ export default function AdminDashboard() {
             </div>
             <button 
                 onClick={handleRefresh}
-                className={`p-2 rounded-full hover:bg-gray-100 text-gray-400hover:text-blue-600 transition-all ${isRefreshing ? 'animate-spin text-blue-600' : ''}`}
+                className={`p-2 rounded-full hover:bg-gray-200 text-gray-500 hover:text-blue-600 transition-colors ${isRefreshing ? 'animate-spin text-blue-600' : ''}`}
                 title="Refresh Data"
             >
                 <RefreshCw size={20} />
@@ -178,13 +178,13 @@ export default function AdminDashboard() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 items-center">
+        <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 items-center">
             <div className="relative flex-1 w-full">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                 <input 
                     type="text" 
                     placeholder="Search by Roll Number..." 
-                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+                    className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all text-sm"
                     value={searchRoll}
                     onChange={e => setSearchRoll(e.target.value)}
                 />
@@ -192,7 +192,7 @@ export default function AdminDashboard() {
             <div className="relative w-full md:w-64">
                 <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                 <select 
-                    className="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none text-sm cursor-pointer"
+                    className="w-full pl-10 pr-10 py-3 bg-white border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all appearance-none text-sm cursor-pointer"
                     value={statusFilter}
                     onChange={e => setStatusFilter(e.target.value)}
                 >
@@ -207,7 +207,7 @@ export default function AdminDashboard() {
             {(statusFilter || searchRoll) && (
                 <button 
                     onClick={handleClearFilters}
-                    className="inline-flex items-center text-sm text-gray-400hover:text-red-500 transition-colors"
+                    className="inline-flex items-center text-sm text-gray-500 hover:text-red-600 transition-colors py-2 px-3 rounded-lg hover:bg-red-50"
                 >
                     <Trash2 size={14} className="mr-1.5" />
                     Clear Filters
@@ -221,11 +221,11 @@ export default function AdminDashboard() {
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="bg-gray-50/50 border-b border-gray-100">
-                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Student</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Clothes</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Submit Date</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Action</th>
+                            <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Student</th>
+                            <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Clothes</th>
+                            <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Submit Date</th>
+                            <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                            <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Action</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -235,11 +235,11 @@ export default function AdminDashboard() {
                                 <tr 
                                     key={record._id} 
                                     onClick={() => setSelectedRecord(record)}
-                                    className="group hover:bg-gray-50 transition-colors cursor-pointer"
+                                    className="group hover:bg-blue-50/20 transition-colors cursor-pointer"
                                 >
-                                    <td className="px-6 py-4 text-sm">
+                                    <td className="px-6 py-3 text-sm">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs">
+                                            <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs">
                                                 {record.studentId?.name?.charAt(0) || 'U'}
                                             </div>
                                             <div>
@@ -248,25 +248,25 @@ export default function AdminDashboard() {
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-gray-600">
+                                    <td className="px-6 py-3 text-sm text-gray-600">
                                         <div className="flex items-center gap-2">
                                             <Package size={16} className="text-gray-400" />
                                             {record.clothesCount} items
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-gray-600">
+                                    <td className="px-6 py-3 text-sm text-gray-600">
                                         <div className="flex items-center gap-2">
                                             <Calendar size={16} className="text-gray-400" />
                                             {new Date(record.depositDate).toLocaleDateString()}
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-sm">
-                                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
+                                    <td className="px-6 py-3 text-sm">
+                                        <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold border ${
                                             record.status === 'RECEIVED' 
-                                                ? 'bg-green-50 text-green-700 border-green-100' 
+                                                ? 'bg-green-100 text-green-800 border-green-200' 
                                                 : isOverdue 
-                                                    ? 'bg-red-50 text-red-700 border-red-100'
-                                                    : 'bg-yellow-50 text-yellow-700 border-yellow-100'
+                                                    ? 'bg-red-100 text-red-800 border-red-200'
+                                                    : 'bg-yellow-100 text-yellow-800 border-yellow-200'
                                         }`}>
                                             {record.status === 'RECEIVED' ? 'Collected' : isOverdue ? 'Overdue' : 'Processing'}
                                         </span>
@@ -287,7 +287,7 @@ export default function AdminDashboard() {
 
             {/* Pagination */}
             {pagination.pages > 1 && (
-                <div className="px-6 py-4 border-t border-gray-100  flex items-center justify-between bg-gray-50/50">
+                <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between bg-gray-50/50">
                     <div className="text-sm text-gray-500">
                         Page <span className="font-medium text-gray-900">{pagination.page}</span> of <span className="font-medium text-gray-900">{pagination.pages}</span>
                     </div>
@@ -295,14 +295,14 @@ export default function AdminDashboard() {
                         <button 
                             onClick={() => handlePageChange(currentPage - 1)}
                             disabled={currentPage === 1}
-                            className="p-2 rounded-lg bg-white border border-gray-200 disabled:opacity-50 text-gray-600  hover:bg-gray-50"
+                            className="p-2 rounded-lg bg-white border border-gray-300 disabled:opacity-50 text-gray-600 hover:bg-gray-100 transition-colors"
                         >
                             <ChevronLeft size={18} />
                         </button>
                         <button 
                             onClick={() => handlePageChange(currentPage + 1)}
                             disabled={currentPage === pagination.pages}
-                            className="p-2 rounded-lg bg-white border border-gray-200 disabled:opacity-50 text-gray-600  hover:bg-gray-50"
+                            className="p-2 rounded-lg bg-white border border-gray-300 disabled:opacity-50 text-gray-600 hover:bg-gray-100 transition-colors"
                         >
                             <ChevronRight size={18} />
                         </button>
@@ -317,12 +317,12 @@ export default function AdminDashboard() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => setSelectedRecord(null)} />
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden relative z-10">
-                <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center">
                     <h3 className="text-lg font-bold text-gray-900">Details</h3>
                     <button onClick={() => setSelectedRecord(null)} className="p-1 text-gray-400 hover:text-gray-600"><X size={20} /></button>
                 </div>
-                <div className="p-6 space-y-4">
-                    <div className="flex items-center gap-4 p-4 bg-gray-50/50 rounded-xl">
+                <div className="p-6 space-y-5">
+                    <div className="flex items-center gap-4 p-5 bg-gray-50/50 rounded-xl">
                         <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">
                             {selectedRecord.studentId?.name?.charAt(0)}
                         </div>
@@ -336,10 +336,10 @@ export default function AdminDashboard() {
                     <button 
                         onClick={handleSendEmail}
                         disabled={!checkIsOverdue(selectedRecord) || selectedRecord.status === 'RECEIVED' || isSending}
-                        className={`w-full py-3 rounded-xl font-bold transition-all ${
+                        className={`w-full py-3.5 rounded-xl font-bold transition-all ${
                             checkIsOverdue(selectedRecord) && selectedRecord.status !== 'RECEIVED'
-                            ? 'bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-200'
-                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                            ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-200'
+                            : 'bg-gray-200 text-gray-500 cursor-not-allowed'
                         }`}
                     >
                         {isSending ? 'Sending...' : 'Send Overdue Reminder'}
