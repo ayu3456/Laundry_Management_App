@@ -2,31 +2,48 @@ const LaundryRecord = require('../models/LaundryRecord');
 const User = require('../models/User');
 const nodemailer = require('nodemailer');
 
-// Setup Nodemailer
-let transporter;
+let transporter = null; // Initialize to null
+
 async function createTransporter() {
-    if (transporter) return transporter;
+    if (transporter) return transporter; // Reuse existing transporter
+
     try {
-        const testAccount = await nodemailer.createTestAccount();
-        console.log('Ethereal Email Configured:');
-        console.log('User:', testAccount.user);
-        console.log('Pass:', testAccount.pass);
-        
-        transporter = nodemailer.createTransport({
-            host: 'smtp.ethereal.email',
-            port: 587,
-            secure: false,
-            auth: {
-                user: testAccount.user,
-                pass: testAccount.pass
-            }
-        });
+        // Use environment variables for production/development
+        if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+            console.error('❌ EMAIL_USER or EMAIL_PASS environment variables are not set.');
+            // Fallback to test account if env vars are missing
+            const testAccount = await nodemailer.createTestAccount();
+            console.log('Ethereal Email Configured (fallback to test account):');
+            console.log('User:', testAccount.user);
+            console.log('Pass:', testAccount.pass);
+            transporter = nodemailer.createTransport({
+                host: 'smtp.ethereal.email',
+                port: 587,
+                secure: false,
+                auth: {
+                    user: testAccount.user,
+                    pass: testAccount.pass
+                }
+            });
+        } else {
+            // Use provided environment variables
+            transporter = nodemailer.createTransport({
+                host: 'smtp.ethereal.email', // Assuming Ethereal for testing, can be configured via env var
+                port: 587,
+                secure: false,
+                auth: {
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_PASS
+                }
+            });
+        }
         return transporter;
     } catch (err) {
-        console.error('Failed to create Ethereal account', err);
+        console.error('Failed to create email transporter:', err);
+        throw new Error('Email service unavailable'); // Re-throw for higher-level error handling
     }
 }
-createTransporter();
+createTransporter(); // Initialize transporter on startup
 
 // @desc    Submit clothes
 // @route   POST /api/laundry/dropoff
@@ -107,38 +124,78 @@ exports.markReceived = async (req, res) => {
 exports.getAllRecords = async (req, res) => {
     try {
         const { status, rollNumber, page = 1, limit = 10 } = req.query;
-        let query = {};
+        const parsedPage = parseInt(page);
+        const parsedLimit = parseInt(limit);
 
-        if (status) query.status = status;
-        
-        // Fetch all matching status first to handle rollNumber filtering (which requires population)
-        // In a production app with huge data, we would store rollNumber on LaundryRecord to index and query directly.
-        // For this scale, in-memory filtering is acceptable but pagination must apply AFTER filtering.
-        
-        const records = await LaundryRecord.find(query)
-            .populate('studentId', 'name rollNumber hostel room email')
-            .sort({ depositDate: -1 });
+        let pipeline = [];
 
-        // Filter by rollNumber in memory
-        let filteredRecords = records;
-        if (rollNumber) {
-            filteredRecords = records.filter(r => r.studentId && r.studentId.rollNumber && r.studentId.rollNumber.toUpperCase().includes(rollNumber.toUpperCase()));
+        // Stage 1: Initial match for status if provided
+        if (status) {
+            pipeline.push({ $match: { status } });
         }
 
-        // Apply Pagination
-        const startIndex = (page - 1) * limit;
-        const endIndex = page * limit;
-        const paginatedRecords = filteredRecords.slice(startIndex, endIndex);
+        // Stage 2: Populate student data
+        pipeline.push({
+            $lookup: {
+                from: 'users', // The collection name in MongoDB
+                localField: 'studentId',
+                foreignField: '_id',
+                as: 'studentInfo'
+            }
+        });
+
+        // Stage 3: Deconstruct the studentInfo array
+        pipeline.push({ $unwind: '$studentInfo' });
+
+        // Stage 4: Match for rollNumber if provided, after population
+        if (rollNumber) {
+            pipeline.push({
+                $match: {
+                    'studentInfo.rollNumber': { $regex: new RegExp(rollNumber, 'i') }
+                }
+            });
+        }
+
+        // Stage 5: Sort records
+        pipeline.push({ $sort: { depositDate: -1 } });
+
+        // Stage 6: Calculate total count for pagination
+        const totalRecords = await LaundryRecord.aggregate([
+            ...pipeline, // Apply all filters before counting
+            { $count: 'total' }
+        ]);
+        const total = totalRecords.length > 0 ? totalRecords[0].total : 0;
+        const pages = Math.ceil(total / parsedLimit);
+
+        // Stage 7: Apply skip and limit for pagination
+        pipeline.push({ $skip: (parsedPage - 1) * parsedLimit });
+        pipeline.push({ $limit: parsedLimit });
+
+        // Stage 8: Project desired fields (optional, but good practice)
+        pipeline.push({
+            $project: {
+                _id: 1,
+                studentId: '$studentInfo',
+                clothesCount: 1,
+                depositDate: 1,
+                returnDate: 1,
+                receivedDate: 1,
+                status: 1
+            }
+        });
+
+        const records = await LaundryRecord.aggregate(pipeline);
 
         res.json({
-            records: paginatedRecords,
+            records: records,
             pagination: {
-                total: filteredRecords.length,
-                page: Number(page),
-                pages: Math.ceil(filteredRecords.length / limit)
+                total,
+                page: parsedPage,
+                pages
             }
         });
     } catch (error) {
+        console.error('SERVER ERROR (getAllRecords):', error);
         res.status(500).json({ error: error.message });
     }
 };
@@ -149,15 +206,32 @@ exports.getAllRecords = async (req, res) => {
 exports.notifyStudent = async (req, res) => {
     try {
         const { studentId, message } = req.body;
+        
+        // Find the student and their latest pending laundry record
         const user = await User.findById(studentId);
-
         if (!user) {
             return res.status(404).json({ error: 'Student not found' });
         }
 
-        console.log(`Sending email to ${user.email}: ${message}`);
+        const laundryRecord = await LaundryRecord.findOne({ studentId: studentId, status: 'PENDING' });
+        if (!laundryRecord) {
+            return res.status(404).json({ error: 'No pending laundry record found for this student.' });
+        }
+
+        // Check if the record is actually overdue
+        const now = new Date();
+        const returnDate = new Date(laundryRecord.returnDate);
+        if (now <= returnDate) {
+            return res.status(400).json({ error: 'Laundry is not yet overdue.' });
+        }
+
+        console.log(`Sending overdue email reminder to ${user.email}`);
         
         const mailTransporter = await createTransporter();
+        if (!mailTransporter) {
+            return res.status(500).json({ error: 'Email service not configured.' });
+        }
+
         const info = await mailTransporter.sendMail({
             from: '"Laundry Admin" <admin@university.edu>',
             to: user.email,
@@ -166,12 +240,14 @@ exports.notifyStudent = async (req, res) => {
         });
 
         console.log(`Email sent: ${info.messageId}`);
-        console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+        if (nodemailer.getTestMessageUrl(info)) {
+            console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+        }
 
-        res.json({ message: 'Notification sent successfully' });
+        res.json({ message: 'Overdue notification sent successfully' });
     } catch (error) {
         console.error('Notification error:', error);
-        res.status(500).json({ error: 'Failed to send notification' });
+        res.status(500).json({ error: error.message || 'Failed to send notification' });
     }
 };
 // @desc    Get dashboard statistics
